@@ -47,7 +47,7 @@ class ArXivDigest(object):
     if posn_array:
       self.art_posn = posn_array
     else:
-      l_pos = np.char.find(self.arr,'arXiv:')+1
+      l_pos = np.char.find(self.arr,'Title:')+1
       l_pos = np.where(l_pos)[0]
       self.art_posn = l_pos
 
