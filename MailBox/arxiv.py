@@ -64,14 +64,16 @@ class ArXivDigest(object):
     finl = np.fromiter(filter(grab_patt,prep),dtype='<U80')
     return finl
 
-    
-    
   def listing_parser(self):
     listings = self.get_art()
     sl1 = np.concatenate((listings[1:],[-1]))
     sl = it.starmap(slice,zip(listings,sl1))
-    self.listing = []
+    listing = []
     for x in sl:
-      self.listing.append(self.__parse_helper(self.arr[x]))
+      listing.append(self.__parse_helper(self.arr[x]))
+    listing = np.array(listing)
+    self.listing = np.char.replace(listing,'Title: ','')
     return self.listing
+
+  
 
