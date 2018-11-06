@@ -15,7 +15,7 @@ def multi_drop(X,strs):
 
 def grab_patt(X):
   patts = (
-    'Title:','Categories:','https://arxiv.org','Date:'
+    'Title:','Categories:','https://arxiv.org'
     )
   return X.startswith(patts)
 
@@ -43,13 +43,17 @@ class ArXivDigest(object):
       self.set_art()
       return self.art_posn
 
+  def __set_art(self):
+    h1 = np.char.find(self.arr,'Submissions')+1
+    h1+= np.char.find(self.arr,'received from')+1
+    h1 = np.where(h1)[0]+1
+    a1 = np.where( np.char.find(self.arr,''.join(['-']*78))+1)[0]
+    return a1[a1>h1[-1]]
   def set_art(self,posn_array=None):
     if posn_array:
       self.art_posn = posn_array
     else:
-      l_pos = np.char.find(self.arr,'Title:')+1
-      l_pos = np.where(l_pos)[0]
-      self.art_posn = l_pos
+      self.art_posn = self.__set_art()
 
   def __parse_helper(self,obj):
     keep = np.char.not_equal(obj,'').astype(int)
@@ -71,8 +75,8 @@ class ArXivDigest(object):
     listing = []
     for x in sl:
       listing.append(self.__parse_helper(self.arr[x]))
-    listing = np.array(listing)
-    self.listing = np.char.replace(listing,'Title: ','')
+    listing = np.array(listing,dtype=str)
+    self.listing = np.char.replace(listing,'Title: ','') ## ERROR
     return self.listing
 
   
