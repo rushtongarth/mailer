@@ -63,8 +63,11 @@ class ArXivDigest(object):
       self.art_posn = posn_array
     else:
       self.art_posn = self.__set_art()
-  def __links(self):
+  def find_links(self):
     _posn = np.char.find(self.arr,'https://arxiv.org/abs')+1
+    _posn = np.where(_posn)[0]
+    diffs = _posn[np.where(_posn[1:]-_posn[:-1]<3)[0]+1]
+    _posn = _posn[~np.isin(_posn,diffs)]
     self.lks = self.arr[np.where(_posn)]
     st = np.char.find(self.lks,'https://')
     ed = np.char.find(self.lks,',')-1
@@ -73,7 +76,7 @@ class ArXivDigest(object):
   def get_links(self):
     '''Getter for links'''
     if not hasattr(self,'links'):
-      self.__links()
+      self.find_links()
     return self.links
 
 
@@ -118,13 +121,9 @@ class ArXivDigest(object):
     #T = np.where(np.char.find(self.arr,'Title: ')+1)[0]
     #A = np.where(np.char.find(self.arr,'Author')+1)[0]
     #L = np.where(np.char.find(self.arr,'https://arxiv.org/abs')+1)[0]
-    #_ts = np.array([' '.join(self.arr[i:j]) for i,j in zip(T,A)])
-    #ts = np.char.replace(_ts,"Title: ",'')
+    #_ts = np.char.replace([' '.join(self.arr[i:j]) for i,j in zip(T,A)],"Title: ",'')
     #_lk = self.arr[L]
-    ##slicer_vectorized
-    #lk=np.char.find(_lk,'https:')
-    #_lk.view(str
-    #return ts,lk
+
   
 
 
