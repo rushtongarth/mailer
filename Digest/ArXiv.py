@@ -1,7 +1,7 @@
 import itertools as it
 import operator as op
 import numpy as np
-
+from functools import reduce
 
 def title_link(x):
   p = np.char.find(x,'Title')
@@ -22,6 +22,7 @@ def grab_patt(X):
 class ArXivDigest(object):
   def __init__(self,message_array):
     self.arr = message_array
+
   def __get_idx(self,patt):
     '''find indices of pattern in array'''
     return np.where(np.char.find(self.arr,patt)+1)
@@ -64,11 +65,10 @@ class ArXivDigest(object):
     else:
       self.art_posn = self.__set_art()
   def find_links(self):
-    _posn = np.char.find(self.arr,'https://arxiv.org/abs')+1
-    _posn = np.where(_posn)[0]
+    _posn = self.__get_idx('https://arxiv.org/abs')[0]
     diffs = _posn[np.where(_posn[1:]-_posn[:-1]<3)[0]+1]
     _posn = _posn[~np.isin(_posn,diffs)]
-    self.lks = self.arr[np.where(_posn)]
+    self.lks = self.arr[_posn]
     st = np.char.find(self.lks,'https://')
     ed = np.char.find(self.lks,',')-1
     self.links = self.__sl_vctzd('lks',st,ed)
@@ -89,8 +89,13 @@ class ArXivDigest(object):
       self.find_categories()
     return self.categories
 
+  def cat_to_onehot(self):
+    tmp = np.char.split(self.categories,' ')
+    unq = reduce(lambda X,Y: X.union(Y),map(set,tmp))
+    
+
   def find_titles(self):
-    pat1,pat2 = 'Title: ','Author'
+    pat1,pat2 = 'Title: ','Authors: '
     tp = self.__get_idx(pat1)+self.__get_idx(pat2)
     _ts = [' '.join(self.arr[np.r_[i:j]]) for i,j in np.nditer(tp)]
     self.titles  = np.char.replace(_ts,pat1,'')
@@ -117,13 +122,19 @@ class ArXivDigest(object):
     subs= a[pos].tostring()
     return np.frombuffer(subs,dtype=(str,(end-st).max()))
 
-  #def slicer(self):
-    #T = np.where(np.char.find(self.arr,'Title: ')+1)[0]
-    #A = np.where(np.char.find(self.arr,'Author')+1)[0]
-    #L = np.where(np.char.find(self.arr,'https://arxiv.org/abs')+1)[0]
-    #_ts = np.char.replace([' '.join(self.arr[i:j]) for i,j in zip(T,A)],"Title: ",'')
-    #_lk = self.arr[L]
-
+  def slicer(self):
+    T = self.get_titles()
+    L = self.get_links()
+    C = self.get_categories()
+    return T,L,C
+  def get_discriptions(self):
+    L1 = self.get_art()
+    L2 = np.concatenate((L1[1:],[-1]))
+    sl = it.starmap(slice,zip(L1,L2))
+    chop = [self.arr[x] for x in sl]
+    disc = filter(lambda Y: len(' '.join(Y).split('\\\\'))>3,chop)
+    
+  
   
 
 
