@@ -128,45 +128,44 @@ class ArXivDigest(object):
     C = self.get_categories()
     return T,L,C
   def get_discriptions(self):
+    from strin import punctuation as puncn
     L1 = self.get_art()
     L2 = np.concatenate((L1[1:],[-1]))
     sl = it.starmap(slice,zip(L1,L2))
     chop = [self.arr[x] for x in sl]
     disc = filter(lambda Y: len(' '.join(Y).split('\\\\'))>3,chop)
+    for a in disc:
+      t,b = ' '.join(a).split('\\\\')[1:-1]
+      ts = t[t.find('Title: ')+6:t.find("Authors:")].strip()
+      bs = ''.join(map(lambda X: ' ' if X in puncn else X,b)).strip()
     
   
-  
 
 
-  def __parse_helper(self,obj):
-    keep = np.char.not_equal(obj,'').astype(int)
-    keep*= np.char.find(obj,'---')
-    fobj = obj[np.where(keep)]
-    splt = np.where(np.char.find(fobj,'\\\\')+1)[0]
-    loar = np.array_split(fobj,splt)
-    mask = np.where([title_link(x) for x in loar])[0]
-    prep = np.concatenate(op.itemgetter(*mask)(loar))
-    prep = multi_drop(prep,['\\\\',',','(',')'])
-    prep = [x[0].strip() for x in np.char.split(prep,'  ')]
-    finl = np.fromiter(filter(grab_patt,prep),dtype='<U80')
-    return finl
+  #def __parse_helper(self,obj):
+    #keep = np.char.not_equal(obj,'').astype(int)
+    #keep*= np.char.find(obj,'---')
+    #fobj = obj[np.where(keep)]
+    #splt = np.where(np.char.find(fobj,'\\\\')+1)[0]
+    #loar = np.array_split(fobj,splt)
+    #mask = np.where([title_link(x) for x in loar])[0]
+    #prep = np.concatenate(op.itemgetter(*mask)(loar))
+    #prep = multi_drop(prep,['\\\\',',','(',')'])
+    #prep = [x[0].strip() for x in np.char.split(prep,'  ')]
+    #finl = np.fromiter(filter(grab_patt,prep),dtype='<U80')
+    #return finl
 
-  def listing_parser(self):
-    listings = self.get_art()
-    sl1 = np.concatenate((listings[1:],[-1]))
-    sl = it.starmap(slice,zip(listings,sl1))
-    listing = []
-    for x in sl:
-      listing.append(self.__parse_helper(self.arr[x]))
-    listing = np.array(listing,dtype=str)
-    self.listing = np.char.replace(listing,'Title: ','')
-    return self.listing
+  #def listing_parser(self):
+    #listings = self.get_art()
+    #sl1 = np.concatenate((listings[1:],[-1]))
+    #sl = it.starmap(slice,zip(listings,sl1))
+    #listing = []
+    #for x in sl:
+      #listing.append(self.__parse_helper(self.arr[x]))
+    #listing = np.array(listing,dtype=str)
+    #self.listing = np.char.replace(listing,'Title: ','')
+    #return self.listing
 
-#titles: 
-#T,A=np.where(np.char.find(arx.arr,'Title: ')+1)[0],np.where(np.char.find(arx.arr,'Author')+1)[0]
-#_ts = np.array([' '.join(arx.arr[i:j]) for i,j in zip(T,A)])
-#ts = np.char.replace(_ts,'Title: ','')
-#links=arx.arr[np.where(np.char.find(arx.arr,'https://arxiv.org/abs')+1)[0]]
 
 
 
