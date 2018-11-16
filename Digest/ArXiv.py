@@ -1,6 +1,7 @@
 import itertools as it
 import operator as op
 import numpy as np
+from string import punctuation as puncn
 from functools import reduce
 
 def title_link(x):
@@ -90,8 +91,14 @@ class ArXivDigest(object):
     return self.categories
 
   def cat_to_onehot(self):
+    self.find_categories()
     tmp = np.char.split(self.categories,' ')
     unq = reduce(lambda X,Y: X.union(Y),map(set,tmp))
+    self.unq = np.array(sorted(unq))
+    mp = map(lambda X: np.intersect1d(X,self.unq,return_indices=True),tmp)
+    _,_,idx = zip(*mp)
+    self.zs  = np.zeros((len(self.unq),len(idx)))
+    
     
 
   def find_titles(self):
@@ -126,9 +133,12 @@ class ArXivDigest(object):
     T = self.get_titles()
     L = self.get_links()
     C = self.get_categories()
-    return T,L,C
+    S = sorted(np.nditer((T,L,C)),key=lambda X: X[-1])
+    G = [(len(g),k,g) for k,g in [(k,list(g)) for k,g in it.groupby(S,lambda X:X[-1])]]
+    G = sorted(G,key=lambda X: X[0],reverse=True)
+    return G,T,L,C
   def get_discriptions(self):
-    from strin import punctuation as puncn
+    
     L1 = self.get_art()
     L2 = np.concatenate((L1[1:],[-1]))
     sl = it.starmap(slice,zip(L1,L2))
