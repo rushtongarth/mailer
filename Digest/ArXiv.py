@@ -4,21 +4,6 @@ import numpy as np
 from string import punctuation as puncn
 from functools import reduce
 
-def title_link(x):
-  p = np.char.find(x,'Title')
-  p+= np.char.find(x,'https://arxiv.org')+2
-  return np.sum(p>0)
-def multi_drop(X,strs):
-  Y = X.copy()
-  for s in strs:
-    Y = np.char.replace(Y,s,'')
-  return np.char.strip(Y)
-
-def grab_patt(X):
-  patts = (
-    'Title:','Categories:','https://arxiv.org'
-    )
-  return X.startswith(patts)
 
 class ArXivDigest(object):
   def __init__(self,message_array):
@@ -38,6 +23,7 @@ class ArXivDigest(object):
       self.head = np.where(h1)[0]
       h1 = slice(*(self.head+[0,1]))
       self.head = self.arr[h1]
+
   def get_header(self):
     '''Getter for Header'''
     if hasattr(self,'head'):
@@ -45,6 +31,7 @@ class ArXivDigest(object):
     else:
       self.set_header()
       return self.head
+
   def get_art(self):
     '''Setter for articles'''
     if hasattr(self,'art_posn'):
@@ -59,12 +46,14 @@ class ArXivDigest(object):
     h1 = np.where(h1)[0]+1
     a1 = np.where( np.char.find(self.arr,''.join(['-']*78))+1)[0]
     return a1[a1>h1[-1]]
+
   def set_art(self,posn_array=None):
     '''Setter for articles'''
     if posn_array:
       self.art_posn = posn_array
     else:
       self.art_posn = self.__set_art()
+
   def find_links(self):
     _posn = self.__get_idx('https://arxiv.org/abs')[0]
     diffs = _posn[np.where(_posn[1:]-_posn[:-1]<3)[0]+1]
@@ -80,26 +69,15 @@ class ArXivDigest(object):
       self.find_links()
     return self.links
 
-
   def find_categories(self):
     patt = 'Categories: '
     idx = self.__get_idx(patt)
     self.categories = np.char.replace(self.arr[idx],patt,'')
+
   def get_categories(self):
     if not hasattr(self,'categories'):
       self.find_categories()
     return self.categories
-
-  def cat_to_onehot(self):
-    self.find_categories()
-    tmp = np.char.split(self.categories,' ')
-    unq = reduce(lambda X,Y: X.union(Y),map(set,tmp))
-    self.unq = np.array(sorted(unq))
-    mp = map(lambda X: np.intersect1d(X,self.unq,return_indices=True),tmp)
-    _,_,idx = zip(*mp)
-    self.zs  = np.zeros((len(self.unq),len(idx)))
-    
-    
 
   def find_titles(self):
     pat1,pat2 = 'Title: ','Authors: '
@@ -137,45 +115,9 @@ class ArXivDigest(object):
     G = [(len(g),k,g) for k,g in [(k,list(g)) for k,g in it.groupby(S,lambda X:X[-1])]]
     G = sorted(G,key=lambda X: X[0],reverse=True)
     return G,T,L,C
-  def get_discriptions(self):
-    
-    L1 = self.get_art()
-    L2 = np.concatenate((L1[1:],[-1]))
-    sl = it.starmap(slice,zip(L1,L2))
-    chop = [self.arr[x] for x in sl]
-    disc = filter(lambda Y: len(' '.join(Y).split('\\\\'))>3,chop)
-    for a in disc:
-      t,b = ' '.join(a).split('\\\\')[1:-1]
-      ts = t[t.find('Title: ')+6:t.find("Authors:")].strip()
-      bs = ''.join(map(lambda X: ' ' if X in puncn else X,b)).strip()
-    
-  
 
-
-  #def __parse_helper(self,obj):
-    #keep = np.char.not_equal(obj,'').astype(int)
-    #keep*= np.char.find(obj,'---')
-    #fobj = obj[np.where(keep)]
-    #splt = np.where(np.char.find(fobj,'\\\\')+1)[0]
-    #loar = np.array_split(fobj,splt)
-    #mask = np.where([title_link(x) for x in loar])[0]
-    #prep = np.concatenate(op.itemgetter(*mask)(loar))
-    #prep = multi_drop(prep,['\\\\',',','(',')'])
-    #prep = [x[0].strip() for x in np.char.split(prep,'  ')]
-    #finl = np.fromiter(filter(grab_patt,prep),dtype='<U80')
-    #return finl
-
-  #def listing_parser(self):
-    #listings = self.get_art()
-    #sl1 = np.concatenate((listings[1:],[-1]))
-    #sl = it.starmap(slice,zip(listings,sl1))
-    #listing = []
-    #for x in sl:
-      #listing.append(self.__parse_helper(self.arr[x]))
-    #listing = np.array(listing,dtype=str)
-    #self.listing = np.char.replace(listing,'Title: ','')
-    #return self.listing
-
+#chop = [arx.arr[x] for x in it.starmap(slice,zip(L,np.concatenate((L[1:],[-1]))))]
+#d = [' '.join(x).split('\\\\')[1:] for x in chop]
 
 
 
