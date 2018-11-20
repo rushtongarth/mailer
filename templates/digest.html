@@ -28,10 +28,11 @@
   <body>
     <h1>{{Title}}</h1>
     <div class="container">
-      <p>{{Title2}}</p>
       <ol type="1">
-        {% for t,c,h in plist %}
-        <li><a href="{{h}}">{{t}}</a><ul><li>{{c}}</li></ul></li>
+        {% for n,categories,L in grouped %}<li>{{ categories }}</li>
+        <ul>
+          {% for title,href,cats in L %}<li><a href="{{href}}">{{title}}</a></li>{% endfor %}
+        </ul>
         {% endfor %}
       </ol>
     </div>
