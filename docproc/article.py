@@ -43,7 +43,8 @@ class Article(object):
       'link':self.link,
       'ncats':self.ncats,
       })
-    #(dt,self.categories,self.ncats,self.title,self.link,self.body)
+  def load(self):
+    
 
 class ArticleList(Article):
   def __init__(self,list_in):
