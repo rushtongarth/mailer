@@ -2,20 +2,23 @@
 <html>
  <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <title>Single-Column Responsive Email Template</title>
+  <title>{{Title}}</title>
     <style type="text/css">
       body {margin: 0; padding: 0; min-width: 100%!important;}
       .content {width: 100%; max-width: 600px;}
       .header {padding: 40px 30px 20px 30px;}
       .subhead {font-size: 15px; color: #051414; font-family: sans-serif; letter-spacing: 10px;}
-      .h1 {font-size: 33px; line-height: 38px; font-weight: bold;}
-      .h1, .h2, .bodycopy {color: #153643; font-family: sans-serif;}
+      .header h1 {font-size: 33px; line-height: 38px; font-weight: bold;}
+      .header h1, h2, bodycopy {color: #153643; font-family: sans-serif;}
       .innerpadding {padding: 30px 30px 30px 30px;}
       .borderbottom {border-bottom: 1px solid #f2eeed;}
       .h2 {padding: 0 0 15px 0; font-size: 24px; line-height: 28px; font-weight: bold;}
       .bodycopy {font-size: 16px; line-height: 22px;}
       .button {text-align: center; font-size: 18px; font-family: sans-serif; font-weight: bold; padding: 0 30px 0 30px;}
       .button a {color: #ffffff; text-decoration: none;}
+      ol {counter-reset: item;}
+      li {display: block;}
+      li:before {content: counters(item, ".") " "; counter-increment: item;}
   </style>
   <style>
     @media only screen and (min-device-width: 541px) {
@@ -26,14 +29,14 @@
   </style>
  </head>
   <body>
-    <h1>{{Title}}</h1>
-    <div class="container">
-      <ol type="1">
-        {% for n,categories,L in grouped %}<li>{{ categories }}</li>
-        <ul>
-          {% for title,href,cats in L %}<li><a href="{{href}}">{{title}}</a></li>{% endfor %}
-        </ul>
-        {% endfor %}
+    <div class="header" bgcolor="#5757e0">
+      <h1>{{Title}}</h1>
+    </div>
+    <div class="content">
+      <ol type="1">{% for n,categories,L in grouped %}
+        <li>{{ categories }}
+          <ol>{% for title,href,cats in L %}<li><a href="{{href}}">{{title}}</a></li>{% endfor %}</ol>
+        </li>{% endfor %}
       </ol>
     </div>
     <script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>

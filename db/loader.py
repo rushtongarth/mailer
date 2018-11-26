@@ -1,4 +1,4 @@
-import sqlite3
+import sqlalchemy as sql
 import os
 
 THISFILE = os.path.abspath(__file__)
@@ -21,10 +21,10 @@ class DataBaser(object):
   '''database connector class
   
   '''
-  def __init__(self,dbname):
+  def __init__(self,dbname,dbtype='sqlite3://'):
     self.dbname = dbname
   def __enter__(self):
-    self.conn = sqlite3.connect(self.dbname)
+    self.conn = sql.create_engine(dbtype+dbname)
     return self.conn
   def get_cursor(self):
     self.cursor = self.conn.cursor()
