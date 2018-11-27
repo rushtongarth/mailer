@@ -13,10 +13,11 @@ class ReadMail(AbstractMailBox):
        pswd     : password
        location : folder in which to search
   '''
-  def __init__(self,user,pswd,location="INBOX"):
+  def __init__(self,user,pswd,location="INBOX",sender="no-reply@arxiv.org"):
     self.user = user
     self.pswd = pswd
     self.fold = location
+    self.set_sender(sender)
     super().__init__(user,pswd,location)
   def __enter__(self):
     self.mbox = imaplib.IMAP4_SSL('imap.gmail.com')
@@ -31,8 +32,11 @@ class ReadMail(AbstractMailBox):
     return self
   def __exit__(self,*args):
     self.mbox.close()
-  def get_mids(self,sender="no-reply@arxiv.org"):
-    search_str = '(FROM "{:}")'.format(sender)
+  def set_sender(self,sender):
+    self.sender = sender
+  
+  def get_mids(self):
+    search_str = '(FROM "{:}")'.format(self.sender)
     res,data = self.mbox.search(None,search_str)
     if res != 'OK':
       raise IOError('something is wrong with the search')
@@ -55,8 +59,14 @@ class ReadMail(AbstractMailBox):
     self.mess = email.message_from_bytes(data[0][1])
     return self.mail_proc(self.mess)
 
-  def get_latest(self,sender="no-reply@arxiv.org"):
-    ids = self.get_mids(sender)
+  def get_latest(self):
+    ids = self.get_mids()
     message = self.get_by_id(ids[-1])
     return message
+
+  def all_from(self):
+    return [self.get_by_id(m) for m in self.get_mids()]
+
+
+
 
