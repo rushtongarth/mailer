@@ -2,24 +2,22 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import sqlalchemy as sql
 import os
-#from ..docproc.article import Article
+
 
 THISFILE = os.path.abspath(__file__)
 THISDIR = os.path.dirname(THISFILE)
 DATADIR = os.path.join(THISDIR,'arxiv.articles.db')
 
-CREATE_TABLE = '''
-create table Arxiv 
-(
-  date       text,
-  categories text,
-  ncats      integer,
-  title      text,
-  link       text,
-  abstract   blob
-)'''
-
-
+#CREATE_TABLE = '''
+#create table Arxiv 
+#(
+  #date       text,
+  #categories text,
+  #ncats      integer,
+  #title      text,
+  #link       text,
+  #abstract   blob
+#)'''
 
 Base = declarative_base()
 
@@ -50,9 +48,10 @@ class Article(object):
     npt = ''.join(map(lambda X: ' ' if X in pnt else X,tmp))
     npt = npt.upper().split()
     return ' '.join(npt)
-  def format_for_db(self):
+  def format_for_db(self,received_on=None):
+    dt = received_on or date.today()
     return ArticleBase(**{
-      'date':str(date.today()),
+      'date':str(dt),
       'title':self.title,
       'categories':self.categories,
       'body':self.body,
@@ -84,14 +83,8 @@ class DataBaser(object):
     self.curr_sess.commit()
     return N
   def __exit__(self,*args):
-    self.conn.close()
+    self.curr_sess.close()
 
-  #def load(self,db_str):
-  #  engine = sql.create_engine(db_str)
-  #  Session = sessionmaker(bind=engine)
-  #  sess = Session()
-  #  sess.add(t)
-  #  sess.commit()
 
 def loader(database=DATADIR,abstracts=[]):
   with DataBaser(database) as db:
