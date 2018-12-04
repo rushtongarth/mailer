@@ -13,7 +13,10 @@ class SendMail(AbstractMailBox):
     super().__init__(user,pswd,location)
 
   def set_to(self,to):
-    self.receiver = to
+    if isinstance(to,list):
+      self.receiver = ', '.join(to)
+    else:
+      self.receiver = ', '.join([to])
   def get_to(self):
     if hasattr(self,'receiver'):
       return self.receiver
@@ -49,41 +52,3 @@ class SendMail(AbstractMailBox):
       return 1
     return 0
     
-#def send_email(**kwargs):
-  #FROM = kwargs.get('FROM')
-  #pwd = kwargs.get('pwd')
-  #recipient = kwargs.get('recipients')
-  #subj = kwargs.get('subject')
-  #if isinstance(recipient,list):
-    #TO = ', '.join(recipient)
-  #elif isinstance(recipient,str):
-    #TO = recipient
-  #else:
-    #TO = FROM
-  ## Create message container - the correct MIME type is multipart/alternative.
-  #msg = MIMEMultipart('alternative')
-  #msg['Subject'] = subj
-  ##msg['From'] = FROM
-  #msg['To'] = TO
-
-  ## Create the body of the message (a plain-text and an HTML version).
-  #text,html = build_email()
-  ## Record the MIME types of both parts - text/plain and text/html.
-  #part1 = MIMEText(text, 'plain')
-  #part2 = MIMEText(html, 'html')
-  ## Attach parts into message container.
-  ## According to RFC 2046, the last part of a multipart message, in this case
-  ## the HTML message, is best and preferred.
-  #msg.attach(part1)
-  #msg.attach(part2)
-  #try:
-    ## Send the message via SMTP_SSL gmail server.
-    #server_ssl = smtplib.SMTP_SSL("smtp.gmail.com", 465)
-    #server_ssl.login(FROM, pwd)
-    ## sendmail function takes 3 arguments: sender's address, recipient's address
-    ## and message to send - here it is sent as one string.
-    #server_ssl.sendmail(FROM, TO, msg.as_string())
-    #server_ssl.close()
-    #print('successfully sent')
-  #except:
-    #print('failed to send')

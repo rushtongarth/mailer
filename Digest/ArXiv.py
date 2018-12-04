@@ -5,12 +5,15 @@ from functools import reduce
 
 
 class ArXivDigest(object):
-  def __init__(self,message_array):
+  subscriptions = []
+  def __init__(self,subscriptions,message_array):
     self.arr = message_array
+    self.subscriptions.extend(subscriptions)
 
   def __get_idx(self,patt):
     '''find indices of pattern in array'''
     return np.where(np.char.find(self.arr,patt)+1)
+  
   
   def set_header(self,header_array=None):
     '''Setter for header'''
@@ -101,16 +104,41 @@ class ArXivDigest(object):
     '''
     arr = getattr(self,array)
     a,l = arr.view((str,1)),arr.itemsize//4
+    # this doesn't do what is expected
     pos = np.array([np.r_[i:j] for i,j in np.nditer([st,end])])
+    ## if lines start and end a different positions then
+    ## the broadcast below doesn't have the appropriate dimensions
+    ## 
     pos+= np.arange(pos.shape[0])[:,None]*l
     subs= a[pos].tostring()
     return np.frombuffer(subs,dtype=(str,(end-st).max()))
+  
+  def __cat_prep(self):
+    '''determine lengths '''
+    C = self.get_categories()
+    splt = np.char.split(C,' ')[:,None]
+    lens = np.fromiter(map(len,splt[:,0]),dtype=int)
+    Cshp = C.shape+(max(lens),)
+    self.catmat = np.empty(Cshp,dtype=C.dtype)
+    itr = np.nditer([lens,splt],flags=['refs_ok','c_index'])
+    with itr:
+      for l,c in itr:
+        self.catmat[itr.index,:l] = c.item()
+    return self.catmat
+  
+  def cat_grouper(self):
+    cm = self.__cat_prep()
+    
+    return cm
 
   def slicer(self):
     T = self.get_titles()
     L = self.get_links()
     C = self.get_categories()
     S = sorted(np.nditer((T,L,C)),key=lambda X: X[-1])
+    
+    
+    # TODO zip lens and spl then load into tofill and compare with actual subscriptions
     G = [(len(g),k,g) for k,g in [(k,list(g)) for k,g in it.groupby(S,lambda X:X[-1])]]
     G = sorted(G,key=lambda X: X[0],reverse=True)
     return G,T,L,C
