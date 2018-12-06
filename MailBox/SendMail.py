@@ -13,10 +13,7 @@ class SendMail(AbstractMailBox):
     super().__init__(user,pswd,location)
 
   def set_to(self,to):
-    if isinstance(to,list):
-      self.receiver = ', '.join(to)
-    else:
-      self.receiver = ', '.join([to])
+    self.receiver = to
   def get_to(self):
     if hasattr(self,'receiver'):
       return self.receiver
@@ -38,9 +35,13 @@ class SendMail(AbstractMailBox):
   def __exit__(self,*args):
     self.conn.close()
   def distribute(self,subj,content):
+    if isinstance(self.receiver,list):
+      msg_to = ','.join(self.receiver)
+    else:
+      msg_to = self.receiver
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subj
-    msg['To'] = self.get_to()
+    msg['To'] = msg_to
     part1 = MIMEText('', 'plain')
     part2 = MIMEText(content, 'html')
     msg.attach(part1)

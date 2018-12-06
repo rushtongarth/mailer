@@ -104,27 +104,19 @@ class ArXivDigest(object):
     '''
     arr = getattr(self,array)
     a,l = arr.view((str,1)),arr.itemsize//4
+    str_shape = (end-st).max()
     chopped = np.empty(
-      (arr.shape[-1],(end-st).max()),
-      dtype=(str,(end-st).max())
+      (arr.shape[-1],str_shape),
+      dtype=(str,str_shape)
     )
     ix = np.nditer([st,end],flags=['c_index']);
     with ix:
       for i,j in ix:
         el = a[l*ix.index+np.r_[i:j]]
         chopped[ix.index,:len(el)] = el
-      #parts = np.array([
-      #  a[l*ix.index+np.r_[i:j]] for i,j in ix
-      #])
+    mpd = map(lambda X: ''.join(X),chopped)
       
-    #pos = np.array([np.r_[i:j] for i,j in np.nditer([st,end])])
-    ## if lines start and end a different positions then
-    ## the broadcast below doesn't have the appropriate dimensions
-    ## 
-    #pos+= np.arange(pos.shape[0])[:,None]*l
-    #subs= a[pos].tostring()
-    #return np.frombuffer(subs,dtype=(str,(end-st).max()))
-    return np.fromiter(map(lambda X: ''.join(X),chopped),dtype=(str,(end-st).max()))
+    return np.fromiter(mpd,dtype=(str,str_shape))
   
   def __cat_prep(self):
     '''determine lengths '''
