@@ -115,7 +115,6 @@ class ArXivDigest(object):
         el = a[l*ix.index+np.r_[i:j]]
         chopped[ix.index,:len(el)] = el
     mpd = map(lambda X: ''.join(X),chopped)
-      
     return np.fromiter(mpd,dtype=(str,str_shape))
   
   def __cat_prep(self):
@@ -125,10 +124,10 @@ class ArXivDigest(object):
     lens = np.fromiter(map(len,splt[:,0]),dtype=int)
     Cshp = C.shape+(max(lens),)
     self.catmat = np.empty(Cshp,dtype=C.dtype)
-    itr = np.nditer([lens,splt],flags=['refs_ok','c_index'])
-    with itr:
-      for l,c in itr:
-        self.catmat[itr.index,:l] = c.item()
+    #itr = np.nditer([lens,splt],flags=['refs_ok','c_index'])
+    #with itr:
+    for idx,(l,c) in :
+      self.catmat[itr.index,:l] = c.item()
     return self.catmat
   
   def cat_grouper(self):

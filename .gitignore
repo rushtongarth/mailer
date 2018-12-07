@@ -102,3 +102,8 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# No use trying to push the db or config files
+*.db
+*.conf
+*.txt
