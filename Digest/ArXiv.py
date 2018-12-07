@@ -126,8 +126,8 @@ class ArXivDigest(object):
     self.catmat = np.empty(Cshp,dtype=C.dtype)
     #itr = np.nditer([lens,splt],flags=['refs_ok','c_index'])
     #with itr:
-    for idx,(l,c) in :
-      self.catmat[itr.index,:l] = c.item()
+    #for idx,(l,c) in :
+    #  self.catmat[itr.index,:l] = c.item()
     return self.catmat
   
   def cat_grouper(self):
