@@ -63,16 +63,25 @@ class ReadMail(AbstractMailBox):
     ids = self.get_mids()
     message = self.get_by_id(ids[-1])
     return message
-  def get_date(self,mess):
-    L = mess[np.where(np.char.find(mess,'received from')+1)[0][0]]
-    mstr = r'.*from\s+(?P<d1>[MTWF][ouehr][nedui].*GMT)'
-    mstr+= r'\s+to\s+(?P<d2>[MTWF][ouehr][nedui].*GMT)'
-    sk = re.compile(mstr)
-    m = sk.fullmatch(L)
-    dt = lambda X: datetime.datetime.strptime(X,"%a %d %b %y %H:%M:%S GMT")
-    return max(map(dt,m))
-  def all_from(self):
-    return [self.get_by_id(m) for m in self.get_mids()]
+  # date handling
+  def __datehelp(self):
+    _dt = email.utils.parsedate_tz(self.mess['Date'])
+    _dt = email.utils.mktime_tz(_dt)
+    self.set_date(_dt)
+  def get_date(self):
+    if not hasattr(self,'dt'):
+      self.__datehelp()
+    return self.dt
+  def set_date(self,set_to):
+    if isinstance(set_to,int):
+      self.dt = datetime.datetime.fromtimestamp(set_to)
+    elif isinstance(set_to,tuple):
+      self.dt = datetime.datetime(*set_to)
+    else:
+      self.dt = datetime.datetime.now()
+
+
+
 
 
 

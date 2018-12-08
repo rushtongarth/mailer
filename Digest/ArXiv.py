@@ -123,17 +123,22 @@ class ArXivDigest(object):
     splt = np.char.split(C,' ')[:,None]
     lens = np.fromiter(map(len,splt[:,0]),dtype=int)
     Cshp = C.shape+(max(lens),)
-    self.catmat = np.empty(Cshp,dtype=C.dtype)
-    #itr = np.nditer([lens,splt],flags=['refs_ok','c_index'])
-    #with itr:
-    #for idx,(l,c) in :
-    #  self.catmat[itr.index,:l] = c.item()
-    return self.catmat
+    self._catmat = np.empty(Cshp,dtype=C.dtype)
+    for e,(l,s) in enumerate(zip(lens,splt)):
+      self._catmat[e,:l]=s.item()
   
   def cat_grouper(self):
-    cm = self.__cat_prep()
-    
-    return cm
+    self.__cat_prep()
+    shp = len(self._catmat),len(self.subscriptions)
+    cm = np.zeros(shp)
+    for e,(tag,desc) in enumerate(self.subscriptions):
+      x,y = np.where(np.char.find(self._catmat,tag)+1)
+      cm[x,e] = 1
+    t,_ = zip(*self.subscriptions)
+    tag = np.array(t)
+    emp = np.empty_like(tag)
+    self.catmat = np.where(cm.astype(bool),tag,emp)
+    return self.catmat
 
   def slicer(self):
     T = self.get_titles()

@@ -37,7 +37,8 @@ class ArticleBase(Base):
     return sout.format(d=self.date,t=t1,c=self.categories,l=self.link)
   
 class Article(object):
-  def __init__(self,title,categories,body,link):
+  def __init__(self,date_received,title,categories,body,link):
+    self.dt    = ste(date_received)
     self.title = title
     self.categories = categories
     self.body = self.body_clean(body)
@@ -49,7 +50,6 @@ class Article(object):
     npt = npt.upper().split()
     return ' '.join(npt)
   def format_for_db(self,received_on=None):
-    dt = received_on or date.today()
     return ArticleBase(**{
       'date':str(dt),
       'title':self.title,
