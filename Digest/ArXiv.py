@@ -138,6 +138,10 @@ class ArXivDigest(object):
     tag = np.array(t)
     emp = np.empty_like(tag)
     self.catmat = np.where(cm.astype(bool),tag,emp)
+    _,cols = self.catmat.shape
+    # find each filled position in category matrix
+    cats = [np.where(self.catmat[:,i]) for i in range(cols)]
+    # TODO: match only on category type and isolate each
     return self.catmat
 
   def slicer(self):
@@ -147,7 +151,7 @@ class ArXivDigest(object):
     S = sorted(np.nditer((T,L,C)),key=lambda X: X[-1])
     
     
-    # TODO zip lens and spl then load into tofill and compare with actual subscriptions
+    
     G = [(len(g),k,g) for k,g in [(k,list(g)) for k,g in it.groupby(S,lambda X:X[-1])]]
     G = sorted(G,key=lambda X: X[0],reverse=True)
     return G,T,L,C
