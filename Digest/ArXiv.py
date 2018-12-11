@@ -140,10 +140,17 @@ class ArXivDigest(object):
     self.catmat = np.where(cm.astype(bool),tag,emp)
     _,cols = self.catmat.shape
     # find each filled position in category matrix
-    cats = [np.where(self.catmat[:,i]) for i in range(cols)]
-    # TODO: match only on category type and isolate each
-    return self.catmat
+    ucols,idx = np.unique(self.catmat,axis=0,return_inverse=True)
+    cats = dict()
+    for i in range(len(ucols)):
+      k=','.join(filter(None,ucols[i]))
+      cats[k]=np.where(idx==i)
+    return cats
 
+  def outcats(self):
+    # TODO: output categories and titles w links to emailer
+    cg = self.cat_grouper()
+    return cg
   def slicer(self):
     T = self.get_titles()
     L = self.get_links()

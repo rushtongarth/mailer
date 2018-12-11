@@ -51,7 +51,7 @@ class Article(object):
     return ' '.join(npt)
   def format_for_db(self,received_on=None):
     return ArticleBase(**{
-      'date':str(dt),
+      'date':str(self.dt),
       'title':self.title,
       'categories':self.categories,
       'body':self.body,
