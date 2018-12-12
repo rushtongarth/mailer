@@ -148,9 +148,18 @@ class ArXivDigest(object):
     return cats
 
   def outcats(self):
-    # TODO: output categories and titles w links to emailer
+    # TODO: pretty this up and document it!
     cg = self.cat_grouper()
-    return cg
+    sb = dict(self.subscriptions)
+    T = self.get_titles()
+    L = self.get_links()
+    C = self.get_categories()
+    grouped = []
+    for k,idx in cg.items():
+      long_cat = ','.join(map(sb.get,k.split(',')))
+      S = sorted(np.nditer((T[idx],L[idx],C[idx])),key=lambda X: X[-1])
+      grouped.append((long_cat,S))
+    return grouped
   def slicer(self):
     T = self.get_titles()
     L = self.get_links()

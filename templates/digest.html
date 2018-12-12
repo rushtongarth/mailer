@@ -26,7 +26,7 @@
     <tr><td class="header" bgcolor="#5757e0">
       <span style="font-size: 15px;color:#ffffff">{{Title}}</span>
     </td></tr>
-    {% for n,categories,L in grouped %}{% set outer_count=loop.index %}
+    {% for categories,L in grouped %}{% set outer_count=loop.index %}
     <tr><td class="innerpadding borderbottom">
         <table width="100%" border="0" cellspacing="0" cellpadding="0">
           <tr>
@@ -35,8 +35,8 @@
           </tr>
           {% for title,href,cats in L %}
           <tr>
-            <td class="numcol2" style="width:5%">{{outer_count}}.{{loop.index}}</td>
-            <td class="bodycopy"><a href="{{href}}">{{title}}</a></td>
+            <td class="numcol2" style="width:10%">{{outer_count}}.{{loop.index}}</td>
+            <td class="bodycopy"><a href="{{href}}">{{title}}</a>({{cats}})</td>
           </tr>
           {% endfor %}
         </table>
