@@ -148,7 +148,7 @@ class ArXivDigest(object):
     return cats
 
   def outcats(self):
-    # TODO: pretty this up and document it!
+    
     cg = self.cat_grouper()
     sb = dict(self.subscriptions)
     T = self.get_titles()
@@ -159,40 +159,19 @@ class ArXivDigest(object):
       long_cat = ','.join(map(sb.get,k.split(',')))
       S = sorted(np.nditer((T[idx],L[idx],C[idx])),key=lambda X: X[-1])
       grouped.append((long_cat,S))
-    return grouped
-  def slicer(self):
-    T = self.get_titles()
-    L = self.get_links()
-    C = self.get_categories()
-    S = sorted(np.nditer((T,L,C)),key=lambda X: X[-1])
+    return sorted(grouped,reverse=True)
+  
+  #def slicer(self):
+    #T = self.get_titles()
+    #L = self.get_links()
+    #C = self.get_categories()
+    #S = sorted(np.nditer((T,L,C)),key=lambda X: X[-1])
     
     
     
-    G = [(len(g),k,g) for k,g in [(k,list(g)) for k,g in it.groupby(S,lambda X:X[-1])]]
-    G = sorted(G,key=lambda X: X[0],reverse=True)
-    return G,T,L,C
-
-  def find_abstracts(self):
-    T  = self.get_titles()
-    Lk = self.get_links()
-    Ct = self.get_categories()
-    L1 = self.get_art()
-    L2 = np.concatenate((L1[1:],[-1]))
-    SL = it.starmap(slice,zip(L1,L2))
-    chop = [(e,self.arr[x]) for e,x in enumerate(SL)]
-    F = lambda X: np.where(np.char.find(X,'\\\\')+1)[0].shape[0]
-    var = filter(lambda Z: F(Z[1])==3,chop)
-    abstracts = []
-    for i,v in var:
-      idx = np.where(np.char.find(v,'\\\\')+1)[0]
-      idx = (idx  * [0,1,1])+[0,1,0]
-      ast = v[slice(*idx[np.where(idx)])]
-      abstracts.append((T[i],Ct[i],ast,Lk[i]))
-    self.abstracts = abstracts
-  def get_abstracts(self):
-    if not hasattr(self,'abstracts'):
-      self.find_abstracts()
-    return self.abstracts
+    #G = [(len(g),k,g) for k,g in [(k,list(g)) for k,g in it.groupby(S,lambda X:X[-1])]]
+    #G = sorted(G,key=lambda X: X[0],reverse=True)
+    #return G,T,L,C
 
 
 

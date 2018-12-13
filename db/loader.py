@@ -3,7 +3,6 @@ from sqlalchemy.ext.declarative import declarative_base
 import sqlalchemy as sql
 import os
 
-
 THISFILE = os.path.abspath(__file__)
 THISDIR = os.path.dirname(THISFILE)
 DATADIR = os.path.join(THISDIR,'arxiv.articles.db')
@@ -11,12 +10,9 @@ DATADIR = os.path.join(THISDIR,'arxiv.articles.db')
 #CREATE_TABLE = '''
 #create table Arxiv 
 #(
-  #date       text,
-  #categories text,
-  #ncats      integer,
-  #title      text,
-  #link       text,
-  #abstract   blob
+  #date       text,   categories text,
+  #ncats      integer,title      text,
+  #link       text,   abstract   blob
 #)'''
 
 Base = declarative_base()

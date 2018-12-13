@@ -11,7 +11,7 @@
       .innerpadding {padding: 30px 30px 30px 30px;}
       .borderbottom {border-bottom: 1px solid #f2eeed;}
       .bodycopy {font-size: 12px; line-height: 16px;}
-      .numcol2 {font-size: 12px; line-height: 16px;vertical-align:top;}
+      .numcol {font-size: 12px; line-height: 16px;vertical-align:top;}
   </style>
   <style>
     @media only screen and (min-device-width: 541px) {
@@ -24,7 +24,7 @@
 <body>
   <table align="center" cellpadding="0" cellspacing="0" border="0" style="width: 80%;">
     <tr><td class="header" bgcolor="#5757e0">
-      <span style="font-size: 15px;color:#ffffff">{{Title}}</span>
+      <span style="font-size: 25px;font-weight: bold;color:#ffffff">{{Title}}</span>
     </td></tr>
     {% for categories,L in grouped %}{% set outer_count=loop.index %}
     <tr><td class="innerpadding borderbottom">
@@ -35,8 +35,8 @@
           </tr>
           {% for title,href,cats in L %}
           <tr>
-            <td class="numcol2" style="width:10%">{{outer_count}}.{{loop.index}}</td>
-            <td class="bodycopy"><a href="{{href}}">{{title}}</a>({{cats}})</td>
+            <td class="numcol" style="width:10%">{{outer_count}}.{{loop.index}}</td>
+            <td class="bodycopy" style="width:80%"><a href="{{href}}">{{title}}</a><br>({{cats}})</td>
           </tr>
           {% endfor %}
         </table>
