@@ -69,6 +69,7 @@ class ReadMail(AbstractMailBox):
     _dt = email.utils.mktime_tz(_dt)
     self.set_date(_dt)
   def get_date(self):
+    # TODO: this method and friends should be in a messages class
     if not hasattr(self,'dt'):
       self.__datehelp()
     return self.dt

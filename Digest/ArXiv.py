@@ -156,27 +156,8 @@ class ArXivDigest(object):
     C = self.get_categories()
     grouped = []
     for k,idx in cg.items():
-      long_cat = ','.join(map(sb.get,k.split(',')))
+      long_cat = ', '.join(map(sb.get,k.split(',')))
       S = sorted(np.nditer((T[idx],L[idx],C[idx])),key=lambda X: X[-1])
       grouped.append((long_cat,S))
     return sorted(grouped,reverse=True)
-  
-  #def slicer(self):
-    #T = self.get_titles()
-    #L = self.get_links()
-    #C = self.get_categories()
-    #S = sorted(np.nditer((T,L,C)),key=lambda X: X[-1])
-    
-    
-    
-    #G = [(len(g),k,g) for k,g in [(k,list(g)) for k,g in it.groupby(S,lambda X:X[-1])]]
-    #G = sorted(G,key=lambda X: X[0],reverse=True)
-    #return G,T,L,C
-
-
-
-
-
-
-
 

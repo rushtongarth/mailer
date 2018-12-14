@@ -1,5 +1,6 @@
-from ArXiv import ArXivDigest
-
+from .ArXiv import ArXivDigest
+import itertools as it
+import numpy as np
 
 class DigestRecord(ArXivDigest):
   
@@ -28,3 +29,5 @@ class DigestRecord(ArXivDigest):
     if not hasattr(self,'abstracts'):
       self.find_abstracts()
     return self.abstracts
+  
+
