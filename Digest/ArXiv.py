@@ -46,7 +46,8 @@ class ArXivDigest(object):
     h1 = np.char.find(self.arr,'Submissions')+1
     h1+= np.char.find(self.arr,'received from')+1
     h1 = np.where(h1)[0]+1
-    a1 = np.where( np.char.find(self.arr,''.join(['-']*78))+1)[0]
+    sep= np.char.find(self.arr,''.join(['-']*78))+1
+    a1 = np.where( sep )[0]
     return a1[a1>h1[-1]]
 
   def set_art(self,posn_array=None):
@@ -155,6 +156,9 @@ class ArXivDigest(object):
     L = self.get_links()
     C = self.get_categories()
     grouped = []
+    # TODO: T,L,C should be same lengths
+    #  on 2018-12-17  arXiv:1802.02952 didn't have a link
+    #  this broke :(
     for k,idx in cg.items():
       long_cat = ', '.join(map(sb.get,k.split(',')))
       S = sorted(np.nditer((T[idx],L[idx],C[idx])),key=lambda X: X[-1])
