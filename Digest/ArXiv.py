@@ -56,15 +56,33 @@ class ArXivDigest(object):
       self.art_posn = posn_array
     else:
       self.art_posn = self.__set_art()
+  
+  def sub_arr(self):
+    A = self.get_art()
+    junk  = np.ones((A.shape[0],2),dtype=int)
+    junk *= -1
+    junk[:,0]   = A
+    junk[:-1,1] = A[1:]
+    prep = [self.arr[slice(*r)] for r in junk]
+    self.sub = np.concatenate(prep)
+    self.junk = junk-A[0]
 
   def find_links(self):
-    _posn = self.__get_idx('https://arxiv.org/abs')[0]
-    diffs = _posn[np.where(_posn[1:]-_posn[:-1]<3)[0]+1]
-    _posn = _posn[~np.isin(_posn,diffs)]
-    self.lks = self.arr[_posn]
-    st = np.char.find(self.lks,'https://')
-    ed = np.char.find(self.lks,',')-1
-    self.links = self.__sl_vctzd('lks',st,ed)
+    pat1,pat2 = 'Title: ','arXiv:'
+    self.sub_arr()
+    arxs = np.where(np.char.find(self.sub,pat1)+1)[0]
+    axid = self.sub[arxs-3]
+    if not np.char.startswith(axid,pat2).all():
+      raise RuntimeError('not all arxiv links found')
+    self.links = np.char.replace(axid,pat2,'https://arxiv.org/abs/')
+    #https://arxiv.org/abs/
+    #_posn = self.__get_idx('https://arxiv.org/abs')[0]
+    #diffs = _posn[np.where(_posn[1:]-_posn[:-1]<3)[0]+1]
+    #_posn = _posn[~np.isin(_posn,diffs)]
+    #self.lks = self.arr[_posn]
+    #st = np.char.find(self.lks,'https://')
+    #ed = np.char.find(self.lks,',')-1
+    #self.links = self.__sl_vctzd('lks',st,ed)
 
   def get_links(self):
     '''Getter for links'''
