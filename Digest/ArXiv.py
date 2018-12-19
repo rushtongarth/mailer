@@ -74,15 +74,9 @@ class ArXivDigest(object):
     axid = self.sub[arxs-3]
     if not np.char.startswith(axid,pat2).all():
       raise RuntimeError('not all arxiv links found')
-    self.links = np.char.replace(axid,pat2,'https://arxiv.org/abs/')
-    #https://arxiv.org/abs/
-    #_posn = self.__get_idx('https://arxiv.org/abs')[0]
-    #diffs = _posn[np.where(_posn[1:]-_posn[:-1]<3)[0]+1]
-    #_posn = _posn[~np.isin(_posn,diffs)]
-    #self.lks = self.arr[_posn]
-    #st = np.char.find(self.lks,'https://')
-    #ed = np.char.find(self.lks,',')-1
-    #self.links = self.__sl_vctzd('lks',st,ed)
+    links = np.char.replace(axid,pat2,'https://arxiv.org/abs/')
+    self.links = np.array([x[0] for x in np.char.split(links,' ')])
+
 
   def get_links(self):
     '''Getter for links'''

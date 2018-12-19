@@ -12,6 +12,7 @@ class ReadMail(AbstractMailBox):
        user     : username
        pswd     : password
        location : folder in which to search
+       sender   : sender to search for
   '''
   def __init__(self,user,pswd,location,sender):
     self.user = user
@@ -79,6 +80,8 @@ class MessageParser(ReadMail):
   def get_latest(self):
     m = self.get_latest_raw()
     return self.mail_proc(m)
+  def get_ids(self):
+    return self.get_mids()
   
   def __read_part(self,part):
     # read message parts
