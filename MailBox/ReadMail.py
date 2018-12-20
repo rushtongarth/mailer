@@ -68,21 +68,25 @@ class ReadMail(AbstractMailBox):
       _curr = email.message_from_bytes(data[i][1])
       mess_list.append(_curr)
     return mess_list
+
+  def get_ids(self):
+    return self.get_mids()
     
 
 
 
 
 class MessageParser(ReadMail):
-  def __init__(self,user,pswd,location="INBOX",sender="no-reply@arxiv.org"):
+  def __init__(self,user,pswd,location="INBOX",sender="no-reply@arxiv.org",mess_id):
     super().__init__(user,pswd,location,sender)
+    self.set_mess(mess_id)
+    _ = self.get_date()
+
+  def set_mess(self,mid):
+    m = self.get_by_uid(mid)
+    self.mess_arr = self.mail_proc(m)
   
-  def get_latest(self):
-    m = self.get_latest_raw()
-    return self.mail_proc(m)
-  def get_ids(self):
-    return self.get_mids()
-  
+ 
   def __read_part(self,part):
     # read message parts
     if part.get_content_maintype() != 'text':
@@ -99,23 +103,24 @@ class MessageParser(ReadMail):
 
   # date handling
   
-  #def __datehelp(self,mess):
-    #_dt = email.utils.parsedate_tz(self.mess['Date'])
-    #_dt = email.utils.mktime_tz(_dt)
-    #self.set_date(_dt)
-  #def get_date(self):
-    ## TODO: this method and friends should be in a messages class
-    #if not hasattr(self,'dt'):
-      #self.__datehelp()
-    #return self.dt
-  #def set_date(self,set_to):
-    #if isinstance(set_to,int):
-      #self.dt = datetime.datetime.fromtimestamp(set_to)
-    #elif isinstance(set_to,tuple):
-      #self.dt = datetime.datetime(*set_to)
-    #else:
-      #self.dt = datetime.datetime.now()
+  def __datehelp(self):
+    if 'Date' in self.mess.keys():
+      _dt = email.utils.parsedate_tz(self.mess['Date'])
+      _dt = email.utils.mktime_tz(_dt)
+    else:
+      _dt = datetime.datetime.now()
+      _dt = int(_dt.strftime('%s'))
+    self.set_date(_dt)
 
+  def get_date(self):
+    if not hasattr(self,'dt'):
+      self.__datehelp()
+    return self.dt
+  def set_date(self,set_to):
+    self.dt = datetime.datetime.fromtimestamp(set_to)
+  def db_prep(self):
+    ## TODO: add into ArXiv digest how to handle this
+    pass
 
 
 
