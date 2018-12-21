@@ -77,15 +77,18 @@ class ReadMail(AbstractMailBox):
 
 
 class MessageParser(ReadMail):
-  def __init__(self,user,pswd,location="INBOX",sender="no-reply@arxiv.org",mess_id):
+  def __init__(self,user,pswd,location="INBOX",sender="no-reply@arxiv.org",mess_id=-1):
     super().__init__(user,pswd,location,sender)
-    self.set_mess(mess_id)
-    _ = self.get_date()
+    self.mid = mess_id
 
-  def set_mess(self,mid):
-    m = self.get_by_uid(mid)
-    self.mess_arr = self.mail_proc(m)
-  
+  def set_mess(self):
+    if self.mid<0:
+      self.msg = self.get_latest_raw()
+    else:
+      self.msg = self.get_by_uid(self.mid)
+    self.mess_arr = self.mail_proc(self.msg)
+  def get_mess(self):
+    return self.mess_arr
  
   def __read_part(self,part):
     # read message parts
@@ -121,8 +124,11 @@ class MessageParser(ReadMail):
   def db_prep(self):
     ## TODO: add into ArXiv digest how to handle this
     pass
-
-
+  def __call__(self,**kwargs):
+    self.__dict__.update(kwargs)
+    self.set_mess()
+    _ = self.get_date()
+    return self
 
 
 
