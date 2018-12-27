@@ -35,13 +35,25 @@ class ReadMail(AbstractMailBox):
     self.mbox.close()
   def set_sender(self,sender):
     self.sender = sender
+  def __mbsearch(self,*args,default=True):
+    search_arg = list(args)
+    if default:
+      search_arg+= ['FROM "{:}"'.format(self.sender)]
+    search_str = ' '.join(search_arg)
+    _to_search = '({})'.format(search_str)
+    r,d = self.mbox.uid('search',None,_to_search)
+    if r != 'OK':
+      return [b'']
+    return d
   def _ids(self):
-    search_str = '(FROM "{:}")'.format(self.sender)
-    res,data = self.mbox.uid('search',None,search_str)
-    if res != 'OK':
-      self.mids = [b'']
-    else:
-      self.mids = next(map(bytes.split,data))
+    #search_str = '(FROM "{:}")'.format(self.sender)
+    #search_str = self.__mbsearch()
+    #res,data = self.mbox.uid('search',None,search_str)
+    data = self.__mbsearch()
+    #if res != 'OK':
+    #  self.mids = [b'']
+    #else:
+    self.mids = next(map(bytes.split,data))
 
   def get_mids(self):
     if not hasattr(self,'mids'):
@@ -71,64 +83,13 @@ class ReadMail(AbstractMailBox):
 
   def get_ids(self):
     return self.get_mids()
-    
+  def get_unread(self):
+    return self.__mbsearch('UNSEEN')
 
 
 
 
-class MessageParser(ReadMail):
-  def __init__(self,user,pswd,location="INBOX",sender="no-reply@arxiv.org",mess_id=-1):
-    super().__init__(user,pswd,location,sender)
-    self.mid = mess_id
 
-  def set_mess(self):
-    if self.mid<0:
-      self.msg = self.get_latest_raw()
-    else:
-      self.msg = self.get_by_uid(self.mid)
-    self.mess_arr = self.mail_proc(self.msg)
-  def get_mess(self):
-    return self.mess_arr
- 
-  def __read_part(self,part):
-    # read message parts
-    if part.get_content_maintype() != 'text':
-      for subp in part.get_payload():
-        yield from self.__read_part(subp)
-    else:
-      yield part.get_payload()
-
-  def mail_proc(self,mess):
-    # process messages
-    _arr = [np.array(pt.splitlines()) for pt in self.__read_part(mess)]
-    _arr = np.array([np.char.strip(y) for y in _arr])
-    return _arr.squeeze()
-
-  # date handling
-  
-  def __datehelp(self):
-    if 'Date' in self.mess.keys():
-      _dt = email.utils.parsedate_tz(self.mess['Date'])
-      _dt = email.utils.mktime_tz(_dt)
-    else:
-      _dt = datetime.datetime.now()
-      _dt = int(_dt.strftime('%s'))
-    self.set_date(_dt)
-
-  def get_date(self):
-    if not hasattr(self,'dt'):
-      self.__datehelp()
-    return self.dt
-  def set_date(self,set_to):
-    self.dt = datetime.datetime.fromtimestamp(set_to)
-  def db_prep(self):
-    ## TODO: add into ArXiv digest how to handle this
-    pass
-  def __call__(self,**kwargs):
-    self.__dict__.update(kwargs)
-    self.set_mess()
-    _ = self.get_date()
-    return self
 
 
 
