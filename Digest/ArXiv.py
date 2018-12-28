@@ -58,6 +58,12 @@ class ArXivDigest(object):
       self.art_posn = self.__set_art()
   
   def sub_arr(self):
+    '''sub_arr:
+         initialize subarray containing only article data
+         helper for get_sub_arr
+       Parameters: ArXivDigest object
+       returns:    None
+    '''
     A = self.get_art()
     junk  = np.ones((A.shape[0],2),dtype=int)
     junk *= -1
@@ -66,8 +72,26 @@ class ArXivDigest(object):
     prep = [self.arr[slice(*r)] for r in junk]
     self.sub = np.concatenate(prep)
     self.junk = junk-A[0]
-
+  def get_sub_arr(self):
+    '''get_sub_arr:
+         get subarray containing only article data
+       Parameters: ArXivDigest object
+       returns:    sub array
+    '''
+    if not hasattr(self,'sub'):
+      self.sub_arr()
+    return self.sub
+  def __iter__(self):
+    '''iterate through articles'''
+    if not hasattr(self,'sub'):
+      self.sub_arr()
+    return iter(self.sub[i:j] for i,j in self.junk)
   def find_links(self):
+    '''find_links: identify links in email
+                   method supports link getter
+       Parameters: ArXivDigest object
+       returns:    None
+    '''
     pat1,pat2 = 'Title: ','arXiv:'
     self.sub_arr()
     arxs = np.where(np.char.find(self.sub,pat1)+1)[0]
@@ -79,7 +103,7 @@ class ArXivDigest(object):
 
 
   def get_links(self):
-    '''Getter for links'''
+    '''Getter for links in email'''
     if not hasattr(self,'links'):
       self.find_links()
     return self.links
