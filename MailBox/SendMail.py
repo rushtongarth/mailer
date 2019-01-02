@@ -1,5 +1,5 @@
-import os,string,time
-import smtplib
+
+import os,string,time,smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -20,6 +20,17 @@ class SendMail(AbstractMailBox):
     self.set_to(self.user)
     return self.receiver
   
+  def set_cc(self,cc):
+    self.cc = cc
+  def get_cc(self):
+    return self.cc
+  
+  def dist_prep(self,el):
+    if isinstance(el,list):
+      return ','.join(el)
+    else:
+      return el
+  
   def set_from(self,sender):
     self.sender = sender
   def get_from(self):
@@ -35,18 +46,20 @@ class SendMail(AbstractMailBox):
   def __exit__(self,*args):
     self.conn.close()
   def distribute(self,subj,content):
-    if isinstance(self.receiver,list):
-      msg_to = ','.join(self.receiver)
-    else:
-      msg_to = self.receiver
+
+    msg_to = self.dist_prep(self.receiver)
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subj
-    msg['To'] = msg_to
+    msg['To']      = msg_to
+    msg['From']    = self.get_from()
+    if hasattr(self,'cc'):
+      msg['Bcc']   = self.dist_prep(self.cc)
     part1 = MIMEText('', 'plain')
     part2 = MIMEText(content, 'html')
     msg.attach(part1)
     msg.attach(part2)
-    out = self.conn.sendmail(self.get_from(),self.get_to(),msg.as_string())
+    out = self.conn.send_message(msg)
+
     if len(out):
       print("errors in sending to:")
       print(out)
