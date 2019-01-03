@@ -14,7 +14,6 @@ class ArXivDigest(object):
     '''find indices of pattern in array'''
     return np.where(np.char.find(self.arr,patt)+1)
   
-  
   def set_header(self,header_array=None):
     '''Setter for header'''
     if header_array:
@@ -101,7 +100,6 @@ class ArXivDigest(object):
     links = np.char.replace(axid,pat2,'https://arxiv.org/abs/')
     self.links = np.array([x[0] for x in np.char.split(links,' ')])
 
-
   def get_links(self):
     '''Getter for links in email'''
     if not hasattr(self,'links'):
@@ -185,7 +183,6 @@ class ArXivDigest(object):
     return cats
 
   def outcats(self):
-    
     cg = self.cat_grouper()
     sb = dict(self.subscriptions)
     T = self.get_titles()
@@ -200,4 +197,21 @@ class ArXivDigest(object):
       S = sorted(np.nditer((T[idx],L[idx],C[idx])),key=lambda X: X[-1])
       grouped.append((long_cat,S))
     return sorted(grouped,reverse=True)
+
+  def find_abstracts(self):
+    F = lambda X: np.where(np.char.find(X,'\\\\')+1)[0].shape[0]
+    var = filter(lambda Z: F(Z)==3,self)
+    T = self.get_titles()
+    L = self.get_links()
+    C = self.get_categories()
+    self.abstracts = []
+    for i,v in enumerate(var):
+      idx = np.where(np.char.find(v,'\\\\')+1)[0]
+      idx = (idx  * [0,1,1])+[0,1,0]
+      ast = v[slice(*idx[np.where(idx)])]
+      self.abstracts.append((T[i],C[i],ast,L[i]))
+  def get_abstracts(self):
+    if not hasattr(self,'abstracts'):
+      self.find_abstracts()
+    return self.abstracts
 
