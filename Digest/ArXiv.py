@@ -155,17 +155,42 @@ class ArXivDigest(object):
   def __cat_prep(self):
     '''determine lengths '''
     C = self.get_categories()
+    
     splt = np.char.split(C,' ')[:,None]
     lens = np.fromiter(map(len,splt[:,0]),dtype=int)
     Cshp = C.shape+(max(lens),)
     self._catmat = np.empty(Cshp,dtype=C.dtype)
     for e,(l,s) in enumerate(zip(lens,splt)):
       self._catmat[e,:l]=s.item()
+    # prep to load cat mat
+    tags,descr = zip(*self.subscriptions)
+    tags = np.array(tags)
+    emp = np.empty_like(tags)
+    shp = self._catmat.shape[0],len(descr)
+    cm = np.zeros(shp,dtype=bool)
+    for e,(tag,desc) in enumerate(self.subscriptions):
+      x,y = np.where(np.char.find(self._catmat,tag)+1)
+      cm[x,e] = True
+    self.catmat = np.where(cm,tags,emp)
+    _,cols = self.catmat.shape
+    # find each filled position in category matrix
+    ucols,idx = np.unique(self.catmat,axis=0,return_inverse=True)
+    cats = dict()
+    for i in range(len(ucols)):
+      k=','.join(filter(None,ucols[i]))
+      cats[k]=np.where(idx==i)
+    return cats
+
   
+  def __build_catmat(self):
+    pass
+  def get_catmat(self):
+    if hasattr(self,'catmat'):
+      pass
   def cat_grouper(self):
     self.__cat_prep()
-    shp = len(self._catmat),len(self.subscriptions)
-    cm = np.zeros(shp)
+    #shp = self._catmat.shape[0],len(self.subscriptions)
+    #cm = np.zeros(shp)
     for e,(tag,desc) in enumerate(self.subscriptions):
       x,y = np.where(np.char.find(self._catmat,tag)+1)
       cm[x,e] = 1
