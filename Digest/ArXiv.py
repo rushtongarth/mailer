@@ -9,6 +9,7 @@ class ArXivDigest(object):
   def __init__(self,subscriptions,message_array):
     self.arr = message_array
     self.subscriptions.extend(subscriptions)
+    self.subscr_arr = np.array(self.subscriptions)
 
   def __get_idx(self,patt):
     '''find indices of pattern in array'''
@@ -151,54 +152,33 @@ class ArXivDigest(object):
         chopped[ix.index,:len(el)] = el
     mpd = map(lambda X: ''.join(X),chopped)
     return np.fromiter(mpd,dtype=(str,str_shape))
-  
-  def __cat_prep(self):
-    '''determine lengths '''
-    C = self.get_categories()
-    
-    splt = np.char.split(C,' ')[:,None]
-    lens = np.fromiter(map(len,splt[:,0]),dtype=int)
-    Cshp = C.shape+(max(lens),)
-    self._catmat = np.empty(Cshp,dtype=C.dtype)
-    for e,(l,s) in enumerate(zip(lens,splt)):
-      self._catmat[e,:l]=s.item()
-    # prep to load cat mat
-    tags,descr = zip(*self.subscriptions)
-    tags = np.array(tags)
-    emp = np.empty_like(tags)
-    shp = self._catmat.shape[0],len(descr)
-    cm = np.zeros(shp,dtype=bool)
-    for e,(tag,desc) in enumerate(self.subscriptions):
-      x,y = np.where(np.char.find(self._catmat,tag)+1)
-      cm[x,e] = True
-    self.catmat = np.where(cm,tags,emp)
-    _,cols = self.catmat.shape
-    # find each filled position in category matrix
-    ucols,idx = np.unique(self.catmat,axis=0,return_inverse=True)
-    cats = dict()
-    for i in range(len(ucols)):
-      k=','.join(filter(None,ucols[i]))
-      cats[k]=np.where(idx==i)
-    return cats
 
-  
   def __build_catmat(self):
-    pass
+    cols = np.hsplit(
+      self.subscr_arr,self.subscr_arr.shape[-1]
+    )
+    tags,descr = map(np.squeeze,cols)
+    emp = np.empty_like(tags)
+    #
+    cats = self.get_categories()
+    all_cats = np.char.split(cats,' ')
+    shp = all_cats.shape+tags.shape
+    mycats = np.zeros(shp,dtype=bool)
+    #
+    for e,r in enumerate(all_cats):
+      _,_,tmp = np.intersect1d(r,tags,return_indices=True)
+      mycats[e,tmp]=True
+    self.catmat = np.where(mycats,tags,emp)
+
   def get_catmat(self):
-    if hasattr(self,'catmat'):
-      pass
+    if not hasattr(self,'catmat'):
+      self.__build_catmat()
+    return self.catmat
+  
   def cat_grouper(self):
-    self.__cat_prep()
-    #shp = self._catmat.shape[0],len(self.subscriptions)
-    #cm = np.zeros(shp)
-    for e,(tag,desc) in enumerate(self.subscriptions):
-      x,y = np.where(np.char.find(self._catmat,tag)+1)
-      cm[x,e] = 1
-    t,_ = zip(*self.subscriptions)
-    tag = np.array(t)
-    emp = np.empty_like(tag)
-    self.catmat = np.where(cm.astype(bool),tag,emp)
-    _,cols = self.catmat.shape
+    '''group rows of catmat by subscriptions'''
+    cm = self.get_catmat()
+    _,cols = cm.shape
     # find each filled position in category matrix
     ucols,idx = np.unique(self.catmat,axis=0,return_inverse=True)
     cats = dict()
@@ -206,7 +186,7 @@ class ArXivDigest(object):
       k=','.join(filter(None,ucols[i]))
       cats[k]=np.where(idx==i)
     return cats
-
+ 
   def outcats(self):
     cg = self.cat_grouper()
     sb = dict(self.subscriptions)
@@ -222,16 +202,17 @@ class ArXivDigest(object):
       S = sorted(np.nditer((T[idx],L[idx],C[idx])),key=lambda X: X[-1])
       grouped.append((long_cat,S))
     return sorted(grouped,reverse=True)
-
   def find_abstracts(self):
-    F = lambda X: np.where(np.char.find(X,'\\\\')+1)[0].shape[0]
-    var = filter(lambda Z: F(Z)==3,self)
+    
+    F = lambda X: np.where(np.char.find(X,'\\\\')+1)[0]
+    G = lambda X: F(X).shape[0]
+    var = filter(lambda Z: G(Z)==3,self)
     T = self.get_titles()
     L = self.get_links()
     C = self.get_categories()
     self.abstracts = []
     for i,v in enumerate(var):
-      idx = np.where(np.char.find(v,'\\\\')+1)[0]
+      idx = F(v)
       idx = (idx  * [0,1,1])+[0,1,0]
       ast = v[slice(*idx[np.where(idx)])]
       self.abstracts.append((T[i],C[i],ast,L[i]))
@@ -239,4 +220,10 @@ class ArXivDigest(object):
     if not hasattr(self,'abstracts'):
       self.find_abstracts()
     return self.abstracts
+  #def group_abstracts(self):
+    #cg = self.cat_grouper()
+    #sb = dict(self.subscriptions)
+    #abstr = self.get_abstracts()
+    
+  
 

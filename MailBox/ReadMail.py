@@ -34,8 +34,10 @@ class ReadMail(AbstractMailBox):
   def __exit__(self,*args):
     self.mbox.close()
   def set_sender(self,sender):
+    '''set message sender'''
     self.sender = sender
   def __mbsearch(self,*args,default=True):
+    '''search helper'''
     search_arg = list(args)
     if default:
       search_arg+= ['FROM "{:}"'.format(self.sender)]
@@ -45,44 +47,47 @@ class ReadMail(AbstractMailBox):
     if r != 'OK':
       return [b'']
     return d
+  def __fetcher(self,toget):
+    '''message fetching helper'''
+    res,data = self.mbox.uid('fetch',toget,"(RFC822)")
+    if res!='OK':
+      print(res,data,sep='\n',end='\n\n')
+      raise IOError('could not find messages')
+    return data
   def _ids(self):
-    #search_str = '(FROM "{:}")'.format(self.sender)
-    #search_str = self.__mbsearch()
-    #res,data = self.mbox.uid('search',None,search_str)
-    data = self.__mbsearch()
-    #if res != 'OK':
-    #  self.mids = [b'']
-    #else:
-    self.mids = next(map(bytes.split,data))
 
-  def get_mids(self):
-    if not hasattr(self,'mids'):
+    data = self.__mbsearch()
+    self.mid_list = next(map(bytes.split,data))
+  def get_mid_list(self):
+
+    if not hasattr(self,'mid_list'):
       self._ids()
-    return self.mids
+    return self.mid_list
   
   def get_by_uid(self,toget):
-    res,data = self.mbox.uid('fetch',toget,"(RFC822)")
+
+    data = self.__fetcher(toget)
     self.mess = email.message_from_bytes(data[0][1])
     return self.mess
   
   def get_latest_raw(self):
-    ids = self.get_mids()
+    
+    ids = self.get_mid_list()
     message = self.get_by_uid(ids[-1])
     return message
+  
   def get_all_raw(self):
-    mids = self.get_mids()
-    _get = b','.join(mids)
-    res,data = self.mbox.uid('fetch',toget,"(RFC822)")
+    mids = self.get_mid_list()
+    toget = b','.join(mids)
+    data = self.__fetcher(toget)
     mess_list = []
-    if res != 'OK':
-      return mess_list
     for i in range(0,len(data),2):
       _curr = email.message_from_bytes(data[i][1])
       mess_list.append(_curr)
     return mess_list
 
   def get_ids(self):
-    return self.get_mids()
+    return self.get_mid_list()
   def get_unread(self):
     return self.__mbsearch('UNSEEN')
 
