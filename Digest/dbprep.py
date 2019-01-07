@@ -1,27 +1,31 @@
 from .ArXiv import ArXivDigest
+from .Article import Article
 import itertools as it
 import numpy as np
 
-class DigestRecord(ArXivDigest):
-  
-  def __init__(self,subscriptions,message_array,into_db):
-    super().__init__(subscriptions,message_array)
-    self.out_db = into_db
 
-  def find_abstracts(self):
-    
-    F = lambda X: np.where(np.char.find(X,'\\\\')+1)[0].shape[0]
-    var = filter(lambda Z: F(Z[1])==3,self)
-    abstracts = []
-    for i,v in var:
-      idx = np.where(np.char.find(v,'\\\\')+1)[0]
-      idx = (idx  * [0,1,1])+[0,1,0]
-      ast = v[slice(*idx[np.where(idx)])]
-      abstracts.append((T[i],Ct[i],ast,Lk[i]))
-    self.abstracts = abstracts
-  def get_abstracts(self):
-    if not hasattr(self,'abstracts'):
-      self.find_abstracts()
-    return self.abstracts
-  
+
+def ArxLoader(message,ArxDigest):
+  '''prep digest for db insertion'''
+  ms_date = message.get_date()
+  grouped = ArxDigest.group_abstracts()
+  keys = [
+    'date_received','title',
+    'pri_categories','all_categories',
+    'body','link'
+  ]
+  kwargs = dict.fromkeys(keys)
+  kwargs['date_received']=ms_date.date()
+  art_list = []
+  for long_p_cats, p_cats, arts in grouped:
+    kwargs['pri_categories']=p_cats
+    for title,categories,body,lnk in arts:
+      kwargs['title']=title
+      kwargs['all_categories']=categories
+      kwargs['body']=body
+      kwargs['link']=lnk
+      A = Article(**kwargs)
+      art_list.append(A)
+  return art_list
+
 
