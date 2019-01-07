@@ -65,13 +65,16 @@ class ArXivDigest(object):
        returns:    None
     '''
     A = self.get_art()
-    junk  = np.ones((A.shape[0],2),dtype=int)
-    junk *= -1
+    junk  = np.ones((A.shape[0],2),dtype=int) * -1
     junk[:,0]   = A
     junk[:-1,1] = A[1:]
-    prep = [self.arr[slice(*r)] for r in junk]
-    self.sub = np.concatenate(prep)
+    self.sub = np.concatenate([
+      self.arr[slice(*r)] for r in junk
+    ])
+    #prep = [self.arr[slice(*r)] for r in junk]
+    #self.sub = np.concatenate(prep)
     self.junk = junk-A[0]
+    self.junk[-1,-1] = -1
   def get_sub_arr(self):
     '''get_sub_arr:
          get subarray containing only article data
@@ -195,7 +198,7 @@ class ArXivDigest(object):
     C = self.get_categories()
     grouped = []
     # TODO: T,L,C should be same lengths
-    #  on 2018-12-17  arXiv:1802.02952 didn't have a link
+    #  on 2018-12-17 arXiv:1802.02952 didn't have a link
     #  this broke :(
     for k,idx in cg.items():
       long_cat = ', '.join(map(sb.get,k.split(',')))
@@ -206,24 +209,39 @@ class ArXivDigest(object):
     
     F = lambda X: np.where(np.char.find(X,'\\\\')+1)[0]
     G = lambda X: F(X).shape[0]
-    var = filter(lambda Z: G(Z)==3,self)
+    len_nz = filter(lambda Z: G(Z)>0,self)
     T = self.get_titles()
     L = self.get_links()
     C = self.get_categories()
     self.abstracts = []
-    for i,v in enumerate(var):
-      idx = F(v)
-      idx = (idx  * [0,1,1])+[0,1,0]
-      ast = v[slice(*idx[np.where(idx)])]
-      self.abstracts.append((T[i],C[i],ast,L[i]))
+    for i,v in enumerate(len_nz):
+      shp = F(v).shape[0]
+      if shp!=3:
+        use = np.array([T[i]])
+        tup = (T[i], C[i], use, L[i])
+      elif shp==3:
+        idx = ( F(v) * [0,1,1] )+[0,1,0]
+        idx_slc = idx[np.where(idx)]
+        ast = v[slice(*idx_slc)]
+        tup = (T[i], C[i], ast, L[i])
+      self.abstracts.append( tup )
+    self.abstracts = np.array(self.abstracts,dtype=object)
   def get_abstracts(self):
     if not hasattr(self,'abstracts'):
       self.find_abstracts()
     return self.abstracts
-  #def group_abstracts(self):
-    #cg = self.cat_grouper()
-    #sb = dict(self.subscriptions)
-    #abstr = self.get_abstracts()
+  def group_abstracts(self):
+    cg = self.cat_grouper()
+    sb = dict(self.subscriptions)
+    abstr = self.get_abstracts()
+    grouped = []
+    for k,idx in cg.items():
+      long_cat = ', '.join(map(sb.get,k.split(',')))
+      S = sorted(abstr[idx],key=lambda X: X[-1])
+      grouped.append((long_cat,k,S))
+    return sorted(grouped,reverse=True)
+    
+    
     
   
 
