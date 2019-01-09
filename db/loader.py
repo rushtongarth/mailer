@@ -1,7 +1,7 @@
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 import sqlalchemy as sql
-
+import numpy as np
 
 #THISFILE = os.path.abspath(__file__)
 #THISDIR = os.path.dirname(THISFILE)
@@ -23,18 +23,22 @@ class ArticleBase(Base):
   def __repr__(self):
     sout = "<Article(date={d},title={t},categories={c})>"
     t1 = self.title if len(self.title)<30 else self.title[:27]+'...'
-    return sout.format(d=self.date,t=t1,c=self.categories,l=self.link)
-  
+    return sout.format(d=self.date,t=t1,c=self.pri_cats,l=self.link)
+
+def dbinit(dbname):
+  DB_LOC = 'sqlite:///'+dbname
+  engine = sql.create_engine(DB_LOC)
+  Base.metadata.create_all(engine)
 
 
 class DataBaser(object):
   '''database connector class
   
   '''
-  def __init__(self,dbname,dbtype='sqlite3:///'):
-    self.dbname = dbname
+  def __init__(self,dbname,dbtype='sqlite:///'):
+    self.dbname = dbtype+dbname
   def __enter__(self):
-    self.eng = sql.create_engine(dbtype+dbname)
+    self.eng = sql.create_engine(self.dbname)
     self.Session = sessionmaker(bind=self.eng)
     self.curr_sess = self.Session()
     return self
@@ -44,9 +48,9 @@ class DataBaser(object):
   def load_objs(self,list_in):
     N = len(list_in)
     self.arts = np.empty(N,dtype=object)
-    for e,(t,c,b,l) in enumerate(list_in):
-      A = Article(title=t,categories=c,body=b,link=l)
-      self.arts[e] = A.format_for_db()
+    for e,art in enumerate(list_in):
+      A = ArticleBase(**art.format_for_db())
+      self.arts[e] = A
     self.curr_sess.add_all(self.arts)
     self.curr_sess.commit()
     return N

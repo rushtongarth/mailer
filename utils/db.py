@@ -1,5 +1,5 @@
 
-from db.loader import DataBaser  
+from db.loader import DataBaser,ArticleBase
 import os
 
 
@@ -10,6 +10,7 @@ ODIR,ext = os.path.splitext(FNM)
 ROOTDIR = os.path.dirname(CURR)
 OUTPDIR = os.path.join(ROOTDIR,ODIR)
 DATADIR = os.path.join(OUTPDIR,'arxiv.articles.db')
+
 
 
 
