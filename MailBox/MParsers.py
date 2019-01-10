@@ -26,7 +26,7 @@ class MessageParser(ReadMail):
     )
     if hasattr(self,'msg'):
       d = self.get_date().strftime('%Y-%m-%d')
-      base+='|{dt}>'
+      base+='|{dt}>'.format(dt=d)
     else:
       base+='>'
     return base
@@ -79,6 +79,8 @@ class MessageParser(ReadMail):
   def set_date(self,set_to):
     '''set date of message'''
     self.dt = datetime.datetime.fromtimestamp(set_to)
+  def get_date_id(self):
+    return self.get_date(),self.get_mid()
   def __call__(self,**kwargs):
     '''MessageParser class call:
        Parameters:
