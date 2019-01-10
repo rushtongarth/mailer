@@ -100,7 +100,12 @@ class ArXivDigest(object):
     arxs = np.where(np.char.find(self.sub,pat1)+1)[0]
     axid = self.sub[arxs-3]
     if not np.char.startswith(axid,pat2).all():
-      raise RuntimeError('not all arxiv links found')
+      # addition to handle when not all links are located
+      sp_pat = ''.join(['-']*78)
+      arxs = np.where(np.char.find(self.sub,sp_pat)+1)[0]
+      axid = self.sub[arxs+2]
+      if not np.char.startswith(axid,pat2).all():
+        raise RuntimeError('not all arxiv links found')
     links = np.char.replace(axid,pat2,'https://arxiv.org/abs/')
     self.links = np.array([x[0] for x in np.char.split(links,' ')])
 
