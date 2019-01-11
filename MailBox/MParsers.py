@@ -42,7 +42,7 @@ class MessageParser(ReadMail):
       self.msg = self.get_latest_raw()
       self.set_mid(self.mid_list[-1])
     else:
-      self.msg = self.get_by_uid(self.mid)
+      self.msg = self.get_by_uid(b'%d'%self.mid)
     self.mess_arr = self.mail_proc(self.msg)
   def get_mess(self):
     '''get_mess : getter for the current message'''

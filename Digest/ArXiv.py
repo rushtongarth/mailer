@@ -71,8 +71,6 @@ class ArXivDigest(object):
     self.sub = np.concatenate([
       self.arr[slice(*r)] for r in junk
     ])
-    #prep = [self.arr[slice(*r)] for r in junk]
-    #self.sub = np.concatenate(prep)
     self.junk = junk-A[0]
     self.junk[-1,-1] = -1
   def get_sub_arr(self):
@@ -84,11 +82,29 @@ class ArXivDigest(object):
     if not hasattr(self,'sub'):
       self.sub_arr()
     return self.sub
+  def __len__(self):
+    if not hasattr(self,'sub'):
+      self.sub_arr()
+    return self.junk.shape[0]
+  def __getitem__(self,idx):
+    # needs a try except...
+    if not hasattr(self,'sub'):
+      self.sub_arr()
+    return self.sub[slice(*self.junk[idx])]
+  def __setitem__(self,idx,val):
+    # needs a try except...
+    if not hasattr(self,'sub'):
+      self.sub_arr()
+    self.sub[slice(*self.junk[idx])]=val
   def __iter__(self):
     '''iterate through articles'''
     if not hasattr(self,'sub'):
       self.sub_arr()
     return iter(self.sub[i:j] for i,j in self.junk)
+  
+  ## TODO
+  ## migrate the element-wise operations to a subclass
+  
   def find_links(self):
     '''find_links: identify links in email
                    method supports link getter
