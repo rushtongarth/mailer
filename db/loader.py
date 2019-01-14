@@ -3,16 +3,13 @@ from sqlalchemy.ext.declarative import declarative_base
 import sqlalchemy as sql
 import numpy as np
 
-#THISFILE = os.path.abspath(__file__)
-#THISDIR = os.path.dirname(THISFILE)
-#DATADIR = os.path.join(THISDIR,'arxiv.articles.db')
 
 Base = declarative_base()
 
 class ArticleBase(Base):
   '''Class container for arxiv journals'''
   __tablename__ = 'Article'
-  id       = sql.Column(sql.Integer, primary_key=True)
+  shakey   = sql.Column(sql.String(64), primary_key=True)
   date     = sql.Column(sql.String)
   title    = sql.Column(sql.Text)
   pri_cats = sql.Column(sql.String)
@@ -46,9 +43,12 @@ class DataBaser(object):
     self.curr_sess.close()
   
   def load_objs(self,list_in):
-    N = len(list_in)
+    
+    known = [r[0] for r in self.curr_sess.query(ArticleBase.shakey)]
+    up_list = [x for x in list_in if x.shakey not in known]
+    N = len(up_list)
     self.arts = np.empty(N,dtype=object)
-    for e,art in enumerate(list_in):
+    for e,art in enumerate(up_list):
       A = ArticleBase(**art.format_for_db())
       self.arts[e] = A
     self.curr_sess.add_all(self.arts)
