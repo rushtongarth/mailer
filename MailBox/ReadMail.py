@@ -1,6 +1,4 @@
-import imaplib,email,re,datetime
-
-import numpy as np
+import imaplib,email,re,datetime,numpy as np
 
 from MailBox.MailBox import AbstractMailBox
 
@@ -55,28 +53,29 @@ class ReadMail(AbstractMailBox):
       raise IOError('could not find messages')
     return data
   def _ids(self):
-
+    '''_ids'''
     data = self.__mbsearch()
     self.mid_list = next(map(bytes.split,data))
   def get_mid_list(self):
-
+    '''get_mid_list'''
     if not hasattr(self,'mid_list'):
       self._ids()
     return self.mid_list
   
   def get_by_uid(self,toget):
-
+    '''get_by_uid'''
     data = self.__fetcher(toget)
     self.mess = email.message_from_bytes(data[0][1])
     return self.mess
   
   def get_latest_raw(self):
-    
+    '''get_latest_raw'''
     ids = self.get_mid_list()
     message = self.get_by_uid(ids[-1])
     return message
   
   def get_all_raw(self):
+    '''get_all_unread'''
     mids = self.get_mid_list()
     toget = b','.join(mids)
     data = self.__fetcher(toget)
@@ -86,13 +85,34 @@ class ReadMail(AbstractMailBox):
       mess_list.append(_curr)
     return mess_list
 
+  def get_all(self):
+    '''get_all'''
+    ml = self.get_all_raw()
+    for e,m in enumerate(ml):
+      ml[e] = self.mail_proc(m)
+    return ml
+
   def get_ids(self):
+    '''get_ids'''
     return self.get_mid_list()
   def get_unread(self):
+    '''get_unread'''
     return self.__mbsearch('UNSEEN')
 
+  def __read_part(self,part):
+    # read message parts
+    if part.get_content_maintype() != 'text':
+      for subp in part.get_payload():
+        yield from self.__read_part(subp)
+    else:
+      yield part.get_payload()
 
-
+  def mail_proc(self,mess):
+    # process messages
+    mess_parts = self.__read_part(mess)
+    _arr = [np.array(pt.splitlines()) for pt in mess_parts]
+    _arr = np.array([np.char.strip(y) for y in _arr])
+    return _arr.squeeze()
 
 
 
