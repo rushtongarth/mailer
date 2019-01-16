@@ -1,26 +1,27 @@
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+#from sqlalchemy.ext.declarative import declarative_base
 import sqlalchemy as sql
 import numpy as np
 
+from .schema import Base
 
-Base = declarative_base()
+#Base = declarative_base()
 
-class ArticleBase(Base):
-  '''Class container for arxiv journals'''
-  __tablename__ = 'Article'
-  shakey   = sql.Column(sql.String(64), primary_key=True)
-  date     = sql.Column(sql.String)
-  title    = sql.Column(sql.Text)
-  pri_cats = sql.Column(sql.String)
-  all_cats = sql.Column(sql.String)
-  body     = sql.Column(sql.Text)
-  link     = sql.Column(sql.String)
-  ncats    = sql.Column(sql.Integer)
-  def __repr__(self):
-    sout = "<Article(date={d},title={t},categories={c})>"
-    t1 = self.title if len(self.title)<30 else self.title[:27]+'...'
-    return sout.format(d=self.date,t=t1,c=self.pri_cats,l=self.link)
+#class ArticleBase(Base):
+  #'''Class container for arxiv journals'''
+  #__tablename__ = 'Article'
+  #shakey   = sql.Column(sql.String(64), primary_key=True)
+  #date     = sql.Column(sql.String)
+  #title    = sql.Column(sql.Text)
+  #pri_cats = sql.Column(sql.String)
+  #all_cats = sql.Column(sql.String)
+  #body     = sql.Column(sql.Text)
+  #link     = sql.Column(sql.String)
+  #ncats    = sql.Column(sql.Integer)
+  #def __repr__(self):
+    #sout = "<Article(date={d},title={t},categories={c})>"
+    #t1 = self.title if len(self.title)<30 else self.title[:27]+'...'
+    #return sout.format(d=self.date,t=t1,c=self.pri_cats,l=self.link)
 
 def dbinit(dbname):
   DB_LOC = 'sqlite:///'+dbname
