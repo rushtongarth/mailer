@@ -1,7 +1,8 @@
+import textwrap
+import sqlalchemy as sql,numpy as np
 from sqlalchemy.orm import sessionmaker,relationship
 from sqlalchemy.ext.declarative import declarative_base
-import sqlalchemy as sql
-import numpy as np
+
 
 
 Base = declarative_base()
@@ -26,6 +27,7 @@ class ArticleBase(Base):
   '''Class container for arxiv journals'''
   __tablename__ = 'Article'
   shakey   = sql.Column(sql.String(64), primary_key=True)
+  date     = sql.Column(sql.String)
   title    = sql.Column(sql.Text)
   pri_cats = sql.Column(sql.String)
   all_cats = sql.Column(sql.String)
@@ -37,7 +39,7 @@ class ArticleBase(Base):
   
   def __repr__(self):
     sout = "<Article(title={t},categories={c})>"
-    t1 = self.title if len(self.title)<30 else self.title[:27]+'...'
+    t1 = textwrap.shorten(self.title, width=20)
     return sout.format(d=self.date,t=t1,c=self.pri_cats,l=self.link)
 
 
