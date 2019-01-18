@@ -1,4 +1,4 @@
-import imaplib,email,re,datetime,numpy as np
+import imaplib,email,datetime,numpy as np
 
 from MailBox.MailBox import AbstractMailBox
 
@@ -31,6 +31,7 @@ class ReadMail(AbstractMailBox):
     return self
   def __exit__(self,*args):
     self.mbox.close()
+
   def set_sender(self,sender):
     '''set message sender'''
     self.sender = sender
@@ -85,19 +86,19 @@ class ReadMail(AbstractMailBox):
       mess_list.append(_curr)
     return mess_list
 
-  def get_all(self):
-    '''get_all'''
-    ml = self.get_all_raw()
-    for e,m in enumerate(ml):
-      ml[e] = self.mail_proc(m)
-    return ml
-
   def get_ids(self):
     '''get_ids'''
     return self.get_mid_list()
   def get_unread(self):
     '''get_unread'''
     return self.__mbsearch('UNSEEN')
+
+  #def get_all(self):
+    #'''get_all'''
+    #ml = self.get_all_raw()
+    #for e,m in enumerate(ml):
+      #ml[e] = self.mail_proc(m)
+    #return ml
 
   def __read_part(self,part):
     # read message parts

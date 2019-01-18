@@ -1,6 +1,4 @@
-import imaplib,email,re,datetime
-import numpy as np
-
+import email,datetime,numpy as np
 from MailBox.ReadMail import ReadMail
 
 class MessageParser(ReadMail):
@@ -18,16 +16,6 @@ class MessageParser(ReadMail):
     '''
     super().__init__(user,pswd,location,sender)
     self.set_mid(mess_id)
-  def __repr__(self):
-    base = '<mess: {mid}|{loc}'
-    base = base.format(
-      mid=self.mid,loc=self.fold
-    )
-    if hasattr(self,'msg'):
-      d = self.get_date().strftime('%Y-%m-%d')
-      base+='|{dt}'.format(dt=d)
-    base+='>'
-    return base
   def set_mid(self,mid):
     '''set message id'''
     self.mid = mid
@@ -45,21 +33,17 @@ class MessageParser(ReadMail):
   def get_mess(self):
     '''get_mess : getter for the current message'''
     return self.mess_arr
- 
-  #def __read_part(self,part):
-    ## read message parts
-    #if part.get_content_maintype() != 'text':
-      #for subp in part.get_payload():
-        #yield from self.__read_part(subp)
-    #else:
-      #yield part.get_payload()
-
-  #def mail_proc(self,mess):
-    ## process messages
-    #mess_parts = self.__read_part(mess)
-    #_arr = [np.array(pt.splitlines()) for pt in mess_parts]
-    #_arr = np.array([np.char.strip(y) for y in _arr])
-    #return _arr.squeeze()
+  
+  def __repr__(self):
+    base = '<mess: {mid}|{loc}'
+    base = base.format(
+      mid=self.mid,loc=self.fold
+    )
+    if hasattr(self,'msg'):
+      d = self.get_date().strftime('%Y-%m-%d')
+      base+='|{dt}'.format(dt=d)
+    base+='>'
+    return base
   # date handling
   def __datehelp(self):
     if 'Date' in self.mess.keys():
