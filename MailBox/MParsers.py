@@ -33,7 +33,6 @@ class MessageParser(ReadMail):
   def get_mess(self):
     '''get_mess : getter for the current message'''
     return self.mess_arr
-  
   def __repr__(self):
     base = '<mess: {mid}|{loc}'
     base = base.format(
