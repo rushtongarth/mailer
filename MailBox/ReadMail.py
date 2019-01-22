@@ -81,49 +81,4 @@ class ReadMail(AbstractMailBox):
     '''get_latest_raw'''
     return self.get_by_uid(self.mid_list[-1])
 
-  #def __read_part(self,part):
-    ## read message parts
-    #if part.get_content_maintype() != 'text':
-      #for subp in part.get_payload():
-        #yield from self.__read_part(subp)
-    #else:
-      #yield part.get_payload()
 
-  #def mail_proc(self,mess):
-    ## process messages
-    #mess_parts = self.__read_part(mess)
-    #_arr = [np.array(pt.splitlines()) for pt in mess_parts]
-    #_arr = np.array([np.char.strip(y) for y in _arr])
-    #return _arr.squeeze()
-
-  #def get_all_raw(self):
-    #'''get_all_raw'''
-    #mids = self.get_mid_list()
-    #toget = b','.join(mids)
-    #data = self.__fetcher(toget)
-    #mess_list = []
-    #for i in range(0,len(data),2):
-      #_curr = email.message_from_bytes(data[i][1])
-      #mess_list.append(_curr)
-    #return mess_list
-
-  #def get_unread(self):
-    #'''get_unread'''
-    #return self.__mbsearch('UNSEEN')
-
-
-  #def set_sender(self,sender):
-    #self.sender = sender
-  #def get_all(self):
-    #ml = self.get_all_raw()
-    #for e,m in enumerate(ml):
-      #ml[e] = self.mail_proc(m)
-    #return ml
-  #def get_mid_list(self):
-    #'''get_mid_list'''
-    #return self.mid_list
-  #def get_ids(self):
-    #'''get_ids'''
-    #return self.mid_list
-  #def fetch(self,toget):
-    #return self.__fetcher(toget)

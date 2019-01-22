@@ -30,7 +30,7 @@ class MessageContainer(object):
       _dt = int(datetime.datetime.now().strftime('%s'))
     return {
       'subject': m['Subject'],
-      'date'   : _dt,
+      'date'   : datetime.datetime.fromtimestamp(_dt),
       'mid'    : i,
       'arr'    : self.message_proc(m)
     }
@@ -49,21 +49,3 @@ class MessageContainer(object):
     _arr = [np.array(pt.splitlines()) for pt in mess_parts]
     _arr = np.array([np.char.strip(y) for y in _arr])
     return _arr.squeeze()
-  
-  #could these be static
-  #def __datehelp(self):
-    #if 'Date' in self.mess.keys():
-      #_dt = email.utils.parsedate_tz(self.mess['Date'])
-      #_dt = email.utils.mktime_tz(_dt)
-    #else:
-      #_dt = datetime.datetime.now()
-      #_dt = int(_dt.strftime('%s'))
-    #self.set_date(_dt)
-  #def get_date(self):
-    #'''get date of message'''
-    #if not hasattr(self,'dt'):
-      #self.__datehelp()
-    #return self.dt
-  #def set_date(self,set_to):
-    #'''set date of message'''
-    #self.dt = datetime.datetime.fromtimestamp(set_to)

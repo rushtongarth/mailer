@@ -252,6 +252,8 @@ class ArXivDigest(object):
       self.find_abstracts()
     return self.abstracts
   def group_abstracts(self):
+    # TODO: unify this with the layout needed for DB load
+    #       maybe as a "plugin" for the container?
     cg = self.cat_grouper()
     sb = dict(self.subscriptions)
     abstr = self.get_abstracts()

@@ -1,6 +1,6 @@
-
 from .AbstractArticle import AbstractArticle
 from string import punctuation as pnt
+import numpy as np
 #
 class ArXivArticle(object):
   def __init__(self,text_arr): 
@@ -66,7 +66,7 @@ class Article(AbstractArticle):
     return sout.format(d=self.dt,t=t1,c=self.pcats,l=self.link)
   
   def format_for_db(self):
-
+    '''prep for loading to database'''
     return {
       'shakey'   : self.shakey,
       'date'     : self.dt,
