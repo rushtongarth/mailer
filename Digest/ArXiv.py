@@ -1,6 +1,5 @@
-import itertools as it
-import operator as op
-import numpy as np
+import itertools as it,operator as op
+import numpy as np,re
 from functools import reduce
 
 
@@ -46,6 +45,11 @@ class ArXivDigest(object):
     h1 = np.char.find(self.arr,'Submissions')+1
     h1+= np.char.find(self.arr,'received from')+1
     h1 = np.where(h1)[0]+1
+    if len(h1)!=2:
+      sk1 = re.compile('received from  [MTWF][ouehr][nedri]')                                                                                             
+      sk2 = re.compile('Submissions')
+      loc = [e for e,v in enumerate(self.arr) if sk1.match(v) or sk2.match(v)]
+      h1 = np.array(loc)+1
     sep= np.char.find(self.arr,''.join(['-']*78))+1
     a1 = np.where( sep )[0]
     return a1[a1>h1[-1]]
@@ -226,6 +230,7 @@ class ArXivDigest(object):
       S = sorted(np.nditer((T[idx],L[idx],C[idx])),key=lambda X: X[-1])
       grouped.append((long_cat,S))
     return sorted(grouped,reverse=True)
+
   def find_abstracts(self):
     
     F = lambda X: np.where(np.char.find(X,'\\\\')+1)[0]
