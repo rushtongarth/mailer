@@ -1,4 +1,3 @@
-
 import numpy as np,datetime,email
 
 class MessageContainer(object):
@@ -11,16 +10,17 @@ class MessageContainer(object):
     self.marray = message_array
   def __len__(self):
     return self.mcount
-  
   def __iter__(self):
     return iter(
       self.__mhelper(i,msg) for i,msg in self.marray
     )
+  def __to_list(self):
+    self.mlist = [
+      self.__mhelper(i,msg) for i,msg in self.marray
+    ]
   def __getitem__(self,idx):
-    if not hasattr(self,'aslist'):
-      self.mlist = [
-        self.__mhelper(i,msg) for i,msg in self.marray
-      ]
+    if not hasattr(self,'mlist'):
+      self.__to_list()
     return self.mlist[idx]
   def __mhelper(self,i,m):
     if 'Date' in m.keys():

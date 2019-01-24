@@ -27,10 +27,27 @@ class ReadMail(AbstractMailBox):
     unknown_loc(r,self.folder,d)
     # load available ids to object assuming everything else worked
     self._ids()
-    self.get_all()
+    self.__full_pull()
     return self
   def __exit__(self,*args):
     self.mbox.close()
+
+  def __len__(self):
+    '''length of marray'''
+    return len(self.messages)
+  
+  def __iter__(self):
+    '''iterator for messages'''
+    for head,mess in self.messages:
+      pr = self.sk.match(head)
+      mt = email.message_from_bytes(mess)
+      yield pr.group('num'),mt
+  def __getitem__(self,idx):
+    tmp = self.messages[idx]
+    pr = self.sk.match(tmp[0])
+    mt = email.message_from_bytes(tmp[1])
+    return pr.group('num'),mt
+
   def __mbsearch(self,*args):
     '''search helper'''
     search_arg = list(args) + ['FROM "{:}"'.format(self.sender)]
@@ -44,26 +61,22 @@ class ReadMail(AbstractMailBox):
     fetch_check(res,data,toget)
     return data
   def _ids(self):
-    '''_ids'''
+    '''_ids: find uids reported by mailbox'''
     if not hasattr(self,'mid_list'):
       data = self.__mbsearch()
       self.mid_list = next(map(bytes.split,data))
-  def get_all(self):
+  def __full_pull(self):
     idstr = b','.join(self.mid_list)
     prep = self.__fetcher(idstr)
     self.messages = [x for x in prep if x!=b')']
-  def __len__(self):
-    return len(self.messages)
-  def __iter__(self):
-    for head,mess in self.messages:
-      pr = self.sk.match(head)
-      mt = email.message_from_bytes(mess)
-      yield pr.group('num'),mt
-  def __getitem__(self,idx):
-    tmp = self.messages[idx]
-    pr = self.sk.match(tmp[0])
-    mt = email.message_from_bytes(tmp[1])
-    return pr.group('num'),mt
+  def get_all(self):
+    '''get_all
+    getter for messages
+    '''
+    if not hasattr(self,'messages'):
+      self.__full_pull()
+    return self.messages
+  
 
   def as_MessageContainer(self):
     marr = [(x,y) for x,y in self]

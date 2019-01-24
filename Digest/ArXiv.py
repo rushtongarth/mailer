@@ -42,14 +42,16 @@ class ArXivDigest(object):
       return self.art_posn
 
   def __set_art(self):
-    h1 = np.char.find(self.arr,'Submissions')+1
-    h1+= np.char.find(self.arr,'received from')+1
-    h1 = np.where(h1)[0]+1
+    
+    sk1 = re.compile('received from  [MTWF][ouehr][nedri]')                                                                                             
+    sk2 = re.compile('Submissions')
+    loc = np.array([
+      e for e,v in enumerate(self.arr)
+        if sk1.match(v) or sk2.match(v)
+    ])
+    h1 = loc+1
     if len(h1)!=2:
-      sk1 = re.compile('received from  [MTWF][ouehr][nedri]')                                                                                             
-      sk2 = re.compile('Submissions')
-      loc = [e for e,v in enumerate(self.arr) if sk1.match(v) or sk2.match(v)]
-      h1 = np.array(loc)+1
+      raise RuntimeError('the stupid set art function broke')
     sep= np.char.find(self.arr,''.join(['-']*78))+1
     a1 = np.where( sep )[0]
     return a1[a1>h1[-1]]
