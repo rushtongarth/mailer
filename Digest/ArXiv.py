@@ -137,10 +137,15 @@ class ArXivDigest(object):
       self.find_links()
     return self.links
 
+  def __cat_match(self,X):
+    return np.intersect1d(X,self.subscr_arr[:,0]).size
   def find_categories(self):
     patt = 'Categories: '
     idx = self.__get_idx(patt)
-    self.categories = np.char.replace(self.arr[idx],patt,'')
+    cats = np.char.replace(self.arr[idx],patt,'')
+    splt = np.char.split(cats,' ')
+    locs = [e for e,i in enumerate(splt) if self.__cat_match(i)>0]
+    self.categories = cats[locs]
 
   def get_categories(self):
     if not hasattr(self,'categories'):
