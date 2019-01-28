@@ -35,15 +35,13 @@ class ArXivDigest(object):
 
   def get_art(self):
     '''Setter for articles'''
-    if hasattr(self,'art_posn'):
-      return self.art_posn
-    else:
+    if not hasattr(self,'art_posn'):
       self.set_art()
-      return self.art_posn
+    return self.art_posn
 
   def __set_art(self):
     
-    sk1 = re.compile('received from  [MTWF][ouehr][nedri]')                                                                                             
+    sk1 = re.compile('received from  [MTWF][ouehr][nedui]')
     sk2 = re.compile('Submissions')
     loc = np.array([
       e for e,v in enumerate(self.arr)
