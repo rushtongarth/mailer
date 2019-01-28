@@ -13,54 +13,49 @@ class ArXivDigest(object):
   def __get_idx(self,patt):
     '''find indices of pattern in array'''
     return np.where(np.char.find(self.arr,patt)+1)
-  
-  def set_header(self,header_array=None):
-    '''Setter for header'''
-    if header_array:
-      self.head = header_array
-    else:
-      h1 = np.char.find(self.arr,'Submissions')+1
-      h1+= np.char.find(self.arr,'received from')+1
-      self.head = np.where(h1)[0]
-      h1 = slice(*(self.head+[0,1]))
-      self.head = self.arr[h1]
-
-  def get_header(self):
-    '''Getter for Header'''
-    if hasattr(self,'head'):
-      return self.head
-    else:
-      self.set_header()
-      return self.head
-
-  def get_art(self):
-    '''Setter for articles'''
-    if not hasattr(self,'art_posn'):
-      self.set_art()
-    return self.art_posn
-
-  def __set_art(self):
-    
+  def __hdr_idx(self):
     sk1 = re.compile('received from  [MTWF][ouehr][nedui]')
     sk2 = re.compile('Submissions')
     loc = np.array([
       e for e,v in enumerate(self.arr)
         if sk1.match(v) or sk2.match(v)
     ])
-    h1 = loc+1
-    if len(h1)!=2:
-      raise RuntimeError('the stupid set art function broke')
-    sep= np.char.find(self.arr,''.join(['-']*78))+1
-    a1 = np.where( sep )[0]
-    return a1[a1>h1[-1]]
+    if len(loc)!=2:
+      raise RuntimeError('the stupid set header index function broke')
+    loc+=[-1,2]
+    self.head_idx = np.r_[slice(*loc)]
+  def set_header(self,header_array=None):
+    '''Setter for header'''
+    if header_array:
+      self.head_idx = header_array
+    else
+      self.__hdr_idx()
 
+  def get_header(self):
+    '''Getter for Header'''
+    if not hasattr(self,'head'):
+      self.__hdr_idx()
+    return self.head_idx
+
+  def __set_art(self):
+    
+    h1 = self.get_header()
+    a1 = self.__get_idx(''.join(['-']*78))
+    return a1[a1>h1[-1]]
+  
+  def get_art(self):
+    '''Getter for articles'''
+    if not hasattr(self,'art_posn'):
+      self.set_art()
+    return self.art_posn
+  
   def set_art(self,posn_array=None):
     '''Setter for articles'''
     if posn_array:
       self.art_posn = posn_array
     else:
       self.art_posn = self.__set_art()
-  
+
   def sub_arr(self):
     '''sub_arr:
          initialize subarray containing only article data
