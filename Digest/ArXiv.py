@@ -28,7 +28,7 @@ class ArXivDigest(object):
     '''Setter for header'''
     if header_array:
       self.head_idx = header_array
-    else
+    else:
       self.__hdr_idx()
 
   def get_header(self):
@@ -40,7 +40,7 @@ class ArXivDigest(object):
   def __set_art(self):
     
     h1 = self.get_header()
-    a1 = self.__get_idx(''.join(['-']*78))
+    a1 = self.__get_idx(''.join(['-']*78))[0]
     return a1[a1>h1[-1]]
   
   def get_art(self):
