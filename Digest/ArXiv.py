@@ -71,7 +71,7 @@ class ArXivDigest(object):
       self.arr[slice(*r)] for r in junk
     ])
     self.junk = junk-A[0]
-    self.junk[-1,-1] = -1
+    self.junk[-1,-1] = self.arr.shape[0]-A[0]
   def get_sub_arr(self):
     '''get_sub_arr:
          get subarray containing only article data
