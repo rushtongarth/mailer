@@ -77,7 +77,6 @@ class ReadMail(AbstractMailBox):
       self.__full_pull()
     return self.messages
   
-
   def as_MessageContainer(self):
     marr = [(x,y) for x,y in self]
     mc = MessageContainer(len(marr),marr)

@@ -5,6 +5,17 @@ import numpy as np
 ## TODO
 # Add connector/formatter for db
 class ArXivArticle(object):
+  date_key = re.compile(
+    r''.join([
+      '.*',
+      '([MTWF][ouehr][nedui], ',
+      '[0-9]{,2} ',
+      '[JFMASOND][a-z][a-z] ',
+      '[0-9]{4} ',
+      '[0-9]{2}:[0-9]{2}:[0-9]{2} ',
+      'GMT)',
+      '.*'])
+  )
   attr = {
     'shakey':None,
     'date_received':None,
@@ -23,17 +34,25 @@ class ArXivArticle(object):
       self.__hash()
     return hash(self._hash)
   def __pat_match(self,patt): 
+    '''pat_match: match pattern on instance text_arr'''
     found = np.char.find(self.raw,patt)+1 
     return np.where(found)[0]
   def __submit_date(self):
     pat1  = 'Date: '
     idx   = self.__pat_match(pat1)
-    _date = self.raw[idx]
-    _date = _date.replace(pat1,'')
-    dstr  = _date[:_date.index('GMT')+3]
+    if idx>0:
+      _date = self.raw[idx]
+      _date = _date.replace(pat1,'')
+      dstr  = _date[:_date.index('GMT')+3]
+    else:
+      _dstr = [
+        date_key.match(x).group(1)
+        for x in self.raw if date_key.match(x)
+      ]
+      dstr = _dstr[0]
     self.date = datetime.datetime.strptime(
-      dstr,'%a, %d %b %Y %H:%M:%S %Z'
-    )
+        dstr,'%a, %d %b %Y %H:%M:%S %Z'
+      )
     self.attr['date_received'] = self.date
   def __hash(self):
     bytes_title = bytes(self.get_title().item(),'utf8')
