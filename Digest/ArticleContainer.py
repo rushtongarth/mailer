@@ -27,12 +27,11 @@ class ArXivArticle(object):
   }
   def __init__(self,text_arr): 
     self.raw = text_arr
+    self.__hash()
   def __repr__(self):
     return str(self.attr)
   def __hash__(self):
-    if not hasattr(self,_hash):
-      self.__hash()
-    return hash(self._hash)
+    return hash(self.shakey)
   def __pat_match(self,patt): 
     '''pat_match: match pattern on instance text_arr'''
     found = np.char.find(self.raw,patt)+1 
@@ -41,23 +40,21 @@ class ArXivArticle(object):
     pat1  = 'Date: '
     idx   = self.__pat_match(pat1)
     if idx>0:
-      _date = self.raw[idx]
+      _date = self.raw[idx].item()
       _date = _date.replace(pat1,'')
       dstr  = _date[:_date.index('GMT')+3]
     else:
       _dstr = [
-        date_key.match(x).group(1)
-        for x in self.raw if date_key.match(x)
+        self.date_key.match(x).group(1)
+        for x in self.raw if self.date_key.match(x)
       ]
       dstr = _dstr[0]
     self.date = datetime.datetime.strptime(
         dstr,'%a, %d %b %Y %H:%M:%S %Z'
       )
-    self.attr['date_received'] = self.date
   def __hash(self):
     bytes_title = bytes(self.get_title().item(),'utf8')
-    self._hash = sha256(bytes_title).hexdigest()
-    self.attr['shakey'] = self._hash
+    self.shakey = sha256(bytes_title).hexdigest()
 
   def __title(self): 
     
@@ -66,8 +63,9 @@ class ArXivArticle(object):
     loc2 = self.__pat_match(pat2)
     pat_range = np.r_[loc1:loc2]
     tstr = ' '.join(self.raw[pat_range])
+    ## THIS SHOULD BE ONLY A STRING!!!
     self.title  = np.char.replace(tstr,pat1,'')
-    self.attr['title'] = self.title
+    
   def __link(self):
     
     patt = '\\\\ ( https://arxiv.org/abs'
@@ -77,26 +75,29 @@ class ArXivArticle(object):
     if link is None:
       raise RuntimeError('the stupid set link function broke')
     self.link = link.group(1).strip()
-    self.attr['link'] = self.link
+
   def __cats(self):
     patt = 'Categories: '
     locn = self.__pat_match(patt)
-    cats = self.raw[locn]
+    cats = self.raw[locn].item()
     cats = np.char.replace(cats,patt,'')
-    cats = np.char.split(cats,' ').item()
-    self.categories = np.array(cats)
-    self.attr['all_categories']=self.categories
+    cats = np.char.split(cats,' ')
+    self.categories = np.array(cats.item())
+    
   def __abstract(self):
     pat1 = '\\\\'
     locs = self.__pat_match(pat1)
     if len(locs)==2:
-      self.abstract = self.get_title()
+      abst = self.get_title()
     elif len(locs)==3:
       chunk = locs[1:]+[1,0]
-      self.abstract = self.raw[slice(*chunk)]
+      abst = self.raw[slice(*chunk)]
     else:
       raise RuntimeError('the stupid abstract function broke')
-    self.attr['body'] = self.abstract
+    abst = ' '.join(abst)
+    self.abstract = np.array([
+      l.strip() for l in abst.split('.') if len(l.strip())
+    ])
   def get_title(self): 
     if not hasattr(self,'title'): 
       self.__title() 
@@ -117,6 +118,14 @@ class ArXivArticle(object):
     if not hasattr(self,'date'):
       self.__submit_date()
     return self.date
-  
+  def get_attrs(self):
+    self.attr['shakey'] = self.shakey
+    self.attr['date_received'] = self.get_date()
+    self.attr['title'] = self.get_title().item()
+    #self.attr['pri_categories']=self.get_cats()
+    self.attr['all_categories']=self.get_cats()
+    self.attr['body'] = self.get_abstract()
+    self.attr['link'] = self.get_link()
+    return self.attr
 
 
