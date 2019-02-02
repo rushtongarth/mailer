@@ -1,14 +1,15 @@
-import itertools as it,operator as op
-import numpy as np,re
-from functools import reduce
+import numpy as np
+import re
+
 
 
 class ArXivDigest(object):
   subscriptions = []
-  def __init__(self,subscriptions,message_array):
+  def __init__(self,subscriptions,message_array,date=None):
     self.arr = message_array
     self.subscriptions.extend(subscriptions)
     self.subscr_arr = np.array(self.subscriptions)
+    self.date = str(date) or '9999-99-99'
 
   def __get_idx(self,patt):
     '''find indices of pattern in array'''
@@ -100,6 +101,14 @@ class ArXivDigest(object):
     if not hasattr(self,'sub'):
       self.sub_arr()
     return iter(self.sub[i:j] for i,j in self.junk)
+  def __repr__(self):
+    ostr = '<{cname}|{date}|{acount}>'
+    ostr = ostr.format(**{
+      'cname'  : type(self).__name__,
+      'date'   : self.date,
+      'acount' : len(self)
+      })
+    return ostr
   
   ## TODO
   ## migrate the element-wise operations to a subclass
@@ -156,31 +165,6 @@ class ArXivDigest(object):
     if not hasattr(self,'titles'):
       self.find_titles()
     return self.titles
-  
-  def __sl_vctzd(self,array,st,end):
-    '''Vectorized string slicer
-    parameters:
-      array:   str: name of array from self to slice
-      st   : array: array of starting positions
-      end  : array: array of ending positions
-    returns:
-      array that has been sliced
-    '''
-    arr = getattr(self,array)
-    a,l = arr.view((str,1)),arr.itemsize//4
-    str_shape = (end-st).max()
-    chopped = np.empty(
-      (arr.shape[-1],str_shape),
-      dtype=(str,str_shape)
-    )
-    ix = np.nditer([st,end],flags=['c_index']);
-    with ix:
-      for i,j in ix:
-        el = a[l*ix.index+np.r_[i:j]]
-        chopped[ix.index,:len(el)] = el
-    mpd = map(lambda X: ''.join(X),chopped)
-    return np.fromiter(mpd,dtype=(str,str_shape))
-
   def __build_catmat(self):
     cols = np.hsplit(
       self.subscr_arr,self.subscr_arr.shape[-1]
@@ -224,7 +208,7 @@ class ArXivDigest(object):
     grouped = []
     # TODO: T,L,C should be same lengths
     #  on 2018-12-17 arXiv:1802.02952 didn't have a link
-    #  this broke :(
+    #  so it broke
     for k,idx in cg.items():
       long_cat = ', '.join(map(sb.get,k.split(',')))
       S = sorted(np.nditer((T[idx],L[idx],C[idx])),key=lambda X: X[-1])

@@ -1,4 +1,7 @@
-import numpy as np,datetime,email
+import datetime
+import email
+
+import numpy as np
 
 class MessageContainer(object):
   

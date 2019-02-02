@@ -1,52 +1,61 @@
-import re,datetime
+import re
+import datetime
 from hashlib import sha256
 import numpy as np
 
 ## TODO
 # Add connector/formatter for db
-class ArXivArticle(object):
-  date_key = re.compile(
-    r''.join([
-      '.*',
-      '([MTWF][ouehr][nedui], ',
-      '[0-9]{,2} ',
-      '[JFMASOND][a-z][a-z] ',
-      '[0-9]{4} ',
-      '[0-9]{2}:[0-9]{2}:[0-9]{2} ',
-      'GMT)',
-      '.*'])
+date_key = re.compile(
+  r' '.join([
+    '.*(?P<date>[MTWF][ouehr][nedui],','[0-9]{,2}',
+    '[JFMASOND][a-z][a-z]',
+    '[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT).*'])
   )
-  attr = {
-    'shakey':None,
-    'date_received':None,
-    'title':None,
-    'pri_categories':None,
-    'all_categories':None,
-    'body':None,
-    'link':None
-  }
-  def __init__(self,text_arr): 
-    self.raw = text_arr
+
+class ArXivArticle(object):
+
+  def __init__(self,text_arr,user_subs): 
+    self.raw  = text_arr
+    self.subs = np.array(user_subs)
+    self.__extract()
+  def __extract(self):
     self.__hash()
+    self.__title()
+    self.__link()
+    self.__submit_date()
+    self.__cats()
+    self.__abstract()
+    self.attr = dict.fromkeys([
+      'shakey','date_received','title','pri_categories',
+      'all_categories','body','link'])
+    _ = self.get_attrs()
   def __repr__(self):
     return str(self.attr)
   def __hash__(self):
     return hash(self.shakey)
-  def __pat_match(self,patt): 
+  def __eq__(self,other):
+    if self.attr['shakey']==other.attr['shakey']:
+      return True
+    else:
+      return False
+  def __pat_match(self,patt,mode=None):
     '''pat_match: match pattern on instance text_arr'''
-    found = np.char.find(self.raw,patt)+1 
+    if mode == 'start':
+      found = np.char.startswith(self.raw,patt)
+    else:
+      found = np.char.find(self.raw,patt)+1
     return np.where(found)[0]
   def __submit_date(self):
     pat1  = 'Date: '
-    idx   = self.__pat_match(pat1)
-    if idx>0:
+    idx   = self.__pat_match(pat1,'start')
+    if idx.shape[0] > 0:
       _date = self.raw[idx].item()
       _date = _date.replace(pat1,'')
       dstr  = _date[:_date.index('GMT')+3]
     else:
       _dstr = [
-        self.date_key.match(x).group(1)
-        for x in self.raw if self.date_key.match(x)
+        date_key.match(x).group('date') 
+        for x in self.raw if date_key.match(x)
       ]
       dstr = _dstr[0]
     self.date = datetime.datetime.strptime(
@@ -59,8 +68,8 @@ class ArXivArticle(object):
   def __title(self): 
     
     pat1,pat2 = 'Title: ','Authors: '
-    loc1 = self.__pat_match(pat1)
-    loc2 = self.__pat_match(pat2)
+    loc1 = self.__pat_match(pat1,'start')
+    loc2 = self.__pat_match(pat2,'start')
     pat_range = np.r_[loc1:loc2]
     tstr = ' '.join(self.raw[pat_range])
     ## THIS SHOULD BE ONLY A STRING!!!
@@ -83,18 +92,32 @@ class ArXivArticle(object):
     cats = np.char.replace(cats,patt,'')
     cats = np.char.split(cats,' ')
     self.categories = np.array(cats.item())
-    
+  def __pcats(self):
+    tags,descr = np.hsplit(
+      self.subs,self.subs.shape[-1]
+      )
+    inter,all_tags,sub_tags = np.intersect1d(
+      self.categories,
+      tags,
+      return_indices=True
+      )
+    mycats = np.zeros(tags.shape,dtype=bool)
+    mycats[sub_tags]=True
+    self.pri_cats = self.subs[mycats.squeeze()]
+  
   def __abstract(self):
     pat1 = '\\\\'
-    locs = self.__pat_match(pat1)
+    locs = self.__pat_match(pat1,'start')
+    
     if len(locs)==2:
-      abst = self.get_title()
-    elif len(locs)==3:
+      abst = self.get_title().item()
+    elif len(locs)>=3:
       chunk = locs[1:]+[1,0]
       abst = self.raw[slice(*chunk)]
+      abst = ' '.join(abst)
     else:
+      print(self.__dict__)
       raise RuntimeError('the stupid abstract function broke')
-    abst = ' '.join(abst)
     self.abstract = np.array([
       l.strip() for l in abst.split('.') if len(l.strip())
     ])
