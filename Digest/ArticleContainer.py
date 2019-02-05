@@ -3,11 +3,9 @@ import datetime
 from hashlib import sha256
 import numpy as np
 
-## TODO
-# Add connector/formatter for db
-date_key = re.compile(
+dsk = re.compile(
   r' '.join([
-    '.*(?P<date>[MTWF][ouehr][nedui],','[0-9]{,2}',
+    '.*(?P<date>[MTWFS][aehoru][deintu],','[0-9]{,2}',
     '[JFMASOND][a-z][a-z]',
     '[0-9]{4} [0-9]{2}:[0-9]{2}:[0-9]{2} GMT).*'])
   )
@@ -34,13 +32,12 @@ class ArXivArticle(object):
   @property
   def date(self):
     _dstr = [
-      date_key.match(x).group('date') 
-      for x in self.raw if date_key.match(x)
+      dsk.match(x).group('date') for x in self.raw if dsk.match(x)
     ]
     dstr = _dstr[0]
     self.__art_date = datetime.datetime.strptime(
         dstr,'%a, %d %b %Y %H:%M:%S %Z'
-      )
+    )
     return self.__art_date
   @property
   def shakey(self):
@@ -48,7 +45,7 @@ class ArXivArticle(object):
       self.__shakey()
     return self._shakey
   def __shakey(self):
-    bytes_title = bytes(self.title.item(),'utf8')
+    bytes_title = bytes(self.title,'utf8')
     self._shakey = sha256(bytes_title).hexdigest()
   @property
   def title(self): 
@@ -61,7 +58,8 @@ class ArXivArticle(object):
     loc2 = self.__pat_match(pat2,'start')
     pat_range = np.r_[loc1:loc2]
     tstr = ' '.join(self.raw[pat_range])
-    self._title  = np.char.replace(tstr,pat1,'')
+    tstr = np.char.replace(tstr,pat1,'')
+    self._title  = tstr.item()
   @property
   def link(self):
     if not hasattr(self,'_link'): 
@@ -95,9 +93,9 @@ class ArXivArticle(object):
   def __pcats(self):
     tags,descr = np.hsplit(self.subs,
                            self.subs.shape[-1])
-    inter,all_tags,sub_tags = np.intersect1d(self.all_cats,
-                                             tags,
-                                             return_indices=True)
+    inter,all_tags,sub_tags = np.intersect1d(
+      self.all_cats,tags,return_indices=True
+    )
     mycats = np.zeros(tags.shape,dtype=bool)
     mycats[sub_tags]=True
     self._pri_cats = self.subs[mycats.squeeze()][:,0]
@@ -110,7 +108,7 @@ class ArXivArticle(object):
     pat1 = '\\\\'
     locs = self.__pat_match(pat1,'start')
     if len(locs)==2:
-      abst = self.get_title().item()
+      abst = self.title
     elif len(locs)>=3:
       chunk = locs[1:]+[1,0]
       abst = self.raw[slice(*chunk)]
@@ -131,5 +129,7 @@ class ArXivArticle(object):
         'body'          : self.abstract,
         'link'          : self.link
       }
+  
+    
 
 
