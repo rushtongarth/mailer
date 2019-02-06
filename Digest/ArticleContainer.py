@@ -15,7 +15,13 @@ class ArXivArticle(object):
     self.raw  = text_arr
     self.subs = np.array(user_subs)
   def __repr__(self):
-    return str(self.to_dict())
+    ostr = '<{}|{}|{}>'
+    ostr = ostr.format(
+      hash(self),
+      self.date,
+      self.title[:45]
+    )
+    return ostr
   def __hash__(self):
     return hash(self.shakey)
   def __eq__(self,other):
