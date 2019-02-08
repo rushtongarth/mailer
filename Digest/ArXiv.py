@@ -110,8 +110,7 @@ class ArXivDigest(object):
       })
     return ostr
   
-  ## TODO
-  ## migrate the element-wise operations to a subclass
+  ## From here on is going away!
   
   def find_links(self):
     '''find_links: identify links in email

@@ -6,9 +6,9 @@ from .ArticleContainer import ArXivArticle
 
 class DailyDigest(object):
   dt = [
-    ('mid',int),('date_msg','M8[us]'),
-    ('shakey','<U64'), ('date_received','M8[us]'),
-    ('title',object), ('pri_cats',object),
+    ('mid','i8'),('date_msg','M8[us]'),
+    ('shakey','U64'), ('date_received','M8[us]'),
+    ('title','O'), ('pri_cats',object),
     ('all_cats',object), ('body',object),
     ('link','U79')
   ]
@@ -32,11 +32,11 @@ class DailyDigest(object):
     for e,arx in enumerate(self.arx_msg):
       self.arx_art[e] = ArXivArticle(arx,self.sub_arr)
   @property
-  def grouping(self):
-    if not hasattr(self,'_grouping'):
-      self.__grouping()
-    return self._grouping
-  def __grouping(self):
+  def grp_mat(self):
+    if not hasattr(self,'_gmat'):
+      self.__gmat()
+    return self._gmat
+  def __gmat(self):
     tags = self.sub_arr[:,0]
     emp = np.empty_like(tags)
     mycats = np.zeros(
@@ -44,16 +44,32 @@ class DailyDigest(object):
       dtype=bool
     )
     for e,r in enumerate(self.listing):
-      _,_,tmp = np.intersect1d(r.pri_cats,tags,return_indices=True)
+      _,_,tmp = np.intersect1d(
+        r.pri_cats,tags,return_indices=True
+      )
       mycats[e,tmp]=True
-    gmat = np.where(mycats,tags,emp)
-    ucols,idx = np.unique(gmat,axis=0,return_inverse=True)
-    self._grouping = dict()
-    for i in range(len(ucols)):
-      k=','.join(filter(None,ucols[i]))
-      self._grouping[k]=np.where(idx==i)
+    self._gmat = np.where(mycats,tags,emp)
     
-     
+  @property
+  def grouping(self):
+    if not hasattr(self,'_grouping'):
+      self.__grouping()
+    return self._grouping
+  def __grouping(self):
+    subs = self.sub_arr
+    ucols,idx = np.unique(
+      self.grp_mat,axis=0,return_inverse=True
+    )
+    flds = ['title','link','all_cats']
+    self._grouping = []
+    for e,rw in enumerate(ucols):
+      _,_,locs = np.intersect1d(
+        rw,subs[:,0],return_indices=True
+      )
+      long_cat = ', '.join(subs[locs,1])
+      curr_ix = np.where(idx==e)
+      rec_slc = self.records[flds][curr_ix]
+      self._grouping.append((long_cat,rec_slc))
     
   @property
   def records(self):
