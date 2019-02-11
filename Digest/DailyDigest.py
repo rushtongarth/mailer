@@ -7,7 +7,7 @@ from .ArticleContainer import ArXivArticle
 class DailyDigest(object):
   dt = [
     ('mid','i8'),('date_msg','M8[us]'),
-    ('shakey','U64'), ('date_received','M8[us]'),
+    ('shakey','U64'), ('date_art','M8[us]'),
     ('title','O'), ('pri_cats',object),
     ('all_cats',object), ('body',object),
     ('link','U79')

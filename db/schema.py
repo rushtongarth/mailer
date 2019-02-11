@@ -1,5 +1,6 @@
 import textwrap
-import sqlalchemy as sql,numpy as np
+import numpy as np
+import sqlalchemy as sql
 from sqlalchemy.orm import sessionmaker,relationship
 from sqlalchemy.ext.declarative import declarative_base
 

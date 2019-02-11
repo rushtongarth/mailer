@@ -1,8 +1,8 @@
-from sqlalchemy.orm import sessionmaker
 
+import os
 import sqlalchemy as sql
 import numpy as np
-
+from sqlalchemy.orm import sessionmaker
 from .schema import Base,ArticleBase,EmailBase
 
 
@@ -11,9 +11,6 @@ def dbinit(dbname):
   DB_LOC = 'sqlite:///'+dbname
   engine = sql.create_engine(DB_LOC)
   Base.metadata.create_all(engine)
-
-
-
 
 class DataBaser(object):
   '''database connector class'''
@@ -24,6 +21,8 @@ class DataBaser(object):
       dbtype : str : database typing string
     """
     self.dbname = dbtype+dbname
+    if not os.path.exists(self.dbname):
+      dbinit(self.dbname)
   def __enter__(self):
     self.eng = sql.create_engine(self.dbname)
     self.Session = sessionmaker(bind=self.eng)
@@ -33,10 +32,6 @@ class DataBaser(object):
     self.curr_sess.close()
   
   def load_objs(self,list_in):
-    '''this needs to be overhauled'''
     pass
-
-
-
 
   

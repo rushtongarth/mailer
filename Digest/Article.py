@@ -1,11 +1,8 @@
 from .AbstractArticle import AbstractArticle
-from string import punctuation as pnt
+from string import punctuation as punct
 import numpy as np
 #
-
-  
-  
-
+punct = punct.replace('.','')
 
 class Article(AbstractArticle):
   def __init__(self,shakey='',
@@ -17,15 +14,14 @@ class Article(AbstractArticle):
     self.title  = title
     self.body   = self.body_clean(body)
     self.link   = link
-    self.acats  = ','.join(all_categories.split())
+    self.acats  = ','.join(all_categories)
     self.pcats  = pri_categories
-    self.ncats  = len(self.pcats.split(','))
+    self.ncats  = len(self.pcats)
     super().__init__(self.dt,self.title,self.link)
   def body_clean(self,text):
-    tmp = ' '.join(text)
-    npt = ''.join(map(lambda X: ' ' if X in pnt else X,tmp))
-    npt = npt.upper().split()
-    return ' '.join(npt)
+    tmp = '. '.join(text)
+    npt = ''.join(map(lambda X: ' ' if X in punct else X,tmp))
+    return npt.upper()
   def __repr__(self):
     sout = "<Article(date={d},title={t},categories={c})>"
     t1 = self.title if len(self.title)<=30 else self.title[:27]+'...'
