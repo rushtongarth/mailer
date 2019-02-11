@@ -39,17 +39,29 @@ class DailyDigest(object):
   def __gmat(self):
     tags = self.sub_arr[:,0]
     emp = np.empty_like(tags)
-    mycats = np.zeros(
-      (self.arx_art.shape[0],tags.shape[0]),
-      dtype=bool
-    )
+    shp = (self.arx_art.shape[0],tags.shape[0])
+    mycats = np.zeros(shp,dtype=bool)
     for e,r in enumerate(self.listing):
       _,_,tmp = np.intersect1d(
-        r.pri_cats,tags,return_indices=True
-      )
+        r.pri_cats,tags,return_indices=True)
       mycats[e,tmp]=True
     self._gmat = np.where(mycats,tags,emp)
-    
+  @property
+  def records(self):
+    if not hasattr(self,'_records'):
+      self.__recs()
+    return self._records
+  def __recs(self):
+    rec_attrs = op.attrgetter(
+      'shakey','date','title',
+      'pri_cats','all_cats',
+      'abstract','link'
+    )
+    dte = self.msg_con['date']
+    mid = self.msg_con['mid']
+    self._records = np.array(
+      [(mid,dte)+rec_attrs(x) for x in self.listing],
+      dtype=self.dt)  
   @property
   def grouping(self):
     if not hasattr(self,'_grouping'):
@@ -70,22 +82,6 @@ class DailyDigest(object):
       curr_ix = np.where(idx==e)
       rec_slc = self.records[flds][curr_ix]
       self._grouping.append((long_cat,rec_slc))
-    
-  @property
-  def records(self):
-    if not hasattr(self,'_records'):
-      self.__recs()
-    return self._records
-  def __recs(self):
-    rec_attrs = op.attrgetter(
-      'shakey','date','title',
-      'pri_cats','all_cats',
-      'abstract','link'
-    )
-    dte = self.msg_con['date']
-    mid = self.msg_con['mid']
-    self._records = np.array(
-      [(mid,dte)+rec_attrs(x) for x in self.listing],
-      dtype=self.dt)
   def as_recarr(self):
-    return self.records.view(np.recarray) 
+    return self.records.view(np.recarray)
+  
