@@ -2,7 +2,7 @@ import numpy as np
 import operator as op
 from .ArXiv import ArXivDigest
 from .ArticleContainer import ArXivArticle
-
+from .Article import Article
 
 class DailyDigest(object):
   dt = [
@@ -84,4 +84,17 @@ class DailyDigest(object):
       self._grouping.append((long_cat,rec_slc))
   def as_recarr(self):
     return self.records.view(np.recarray)
-  
+  def as_dblist(self):
+    dict_arr = np.empty(self.records.shape,dtype=Article)
+    for e,el in enumerate(self.records):
+      data = {
+        'shakey'         : el['shakey'],
+        'date_received'  : el['date_msg'],
+        'title'          : el['title'],
+        'pri_categories' : el['pri_cats'],
+        'all_categories' : el['all_cats'],
+        'body'           : el['body'],
+        'link'           : el['link']
+      }
+      dict_arr[e] = Article(**data)
+    return dict_arr

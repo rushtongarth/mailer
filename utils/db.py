@@ -1,6 +1,7 @@
 
-from Digest import ArxLoader
-from db.loader import DataBaser,ArticleBase,dbinit
+from Digest import DailyDigest
+from db.loader import DataBaser
+from db.schema import EmailBase,ArticleBase
 import os
 
 
@@ -12,21 +13,18 @@ ROOTDIR = os.path.dirname(CURR)
 OUTPDIR = os.path.join(ROOTDIR,ODIR)
 DATADIR = os.path.join(OUTPDIR,'arxiv.articles.db')
 
-def load_prep(database,abstracts):
-  shas = [x.shakey for x in abstracts]
-  
 
-def loader_from_digest(Message,Digest,database=DATADIR):
-  if not os.path.exists(database):
-    dbinit(database)
-  abstracts = ArxLoader(Message,Digest)
+def load_digest(MessageContainer,subscriptions,database=DATADIR,idx=-1):
+  DD = DailyDigest(MessageContainer,subscriptions,idx)
   with DataBaser(database) as db:
-    count = db.load_objs(abstracts)
-  return count
+    erec = EmailBase(**{
+      'uid':np.unique(DD.records['mid'])[0],
+      'date':str(np.unique(DD.records['date_msg'])[0])
+    })
+    erec.articles = [
+      ArticleBase(**a.format_for_db()) for a in DD.as_dblist()
+    ]
+    db.curr_sess.add(erec)
+    db.curr_sess.commit()
 
-def loader_from_abstracts(abstracts,database=DATADIR):
-  if not os.path.exists(database):
-    dbinit(database)
-  with DataBaser(database) as db:
-    count = db.load_objs(abstracts)
-  return count
+  return 

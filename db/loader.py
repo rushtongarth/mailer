@@ -32,6 +32,7 @@ class DataBaser(object):
     self.curr_sess.close()
   
   def load_objs(self,list_in):
-    pass
+    self.curr_sess.add_all([list_in])
+    self.curr_sess.commit()
 
   

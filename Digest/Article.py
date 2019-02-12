@@ -15,8 +15,8 @@ class Article(AbstractArticle):
     self.body   = self.body_clean(body)
     self.link   = link
     self.acats  = ','.join(all_categories)
-    self.pcats  = pri_categories
-    self.ncats  = len(self.pcats)
+    self.pcats  = ','.join(pri_categories)
+    self.ncats  = len(pri_categories)
     super().__init__(self.dt,self.title,self.link)
   def body_clean(self,text):
     tmp = '. '.join(text)
