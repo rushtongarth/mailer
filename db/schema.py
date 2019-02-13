@@ -39,9 +39,10 @@ class ArticleBase(Base):
   email    = relationship('EmailBase', back_populates="articles")
   
   def __repr__(self):
-    sout = "<Article(title={t},categories={c})>"
-    t1 = textwrap.shorten(self.title, width=20)
-    return sout.format(d=self.date,t=t1,c=self.pri_cats,l=self.link)
+    sout = "<Article(title={t},categories={c},art_id={l})>"
+    t1 = textwrap.shorten(self.title, width=40)
+    lnk = self.link.split('/')[-1]
+    return sout.format(d=self.date,t=t1,c=self.pri_cats,l=lnk)
 
 
   

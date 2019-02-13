@@ -8,7 +8,7 @@ from .schema import Base,ArticleBase,EmailBase
 
 
 def dbinit(dbname):
-  DB_LOC = 'sqlite:///'+dbname
+  DB_LOC = dbname
   engine = sql.create_engine(DB_LOC)
   Base.metadata.create_all(engine)
 
