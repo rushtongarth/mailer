@@ -34,3 +34,22 @@ def load_container(MessageContainer,subscriptions,database=DATADIR,idx=-1):
   DD = DailyDigest(MessageContainer,subscriptions,idx)
   added = load_digest(DD)
   return added
+
+def bulk_loader(MessageContainer,subscriptions):
+  mc_len  = len(MessageContainer)
+  to_load = [0]*mc_len
+  MC = lambda X: (
+    X,
+    DailyDigest(MessageContainer,subscriptions,X)
+  )
+  for e,dig in map(MC,range(mc_len)):
+    erec = EmailBase(**{
+      'uid':int(np.unique(dig.records['mid'])[0]),
+      'date':str(np.unique(dig.records['date_msg'])[0]),
+    })
+    arts = [
+      ArticleBase(**a.format_for_db()) for a in dig.as_dblist()
+    ]
+    erec.articles = arts
+    to_load[e] = erec
+  return to_load

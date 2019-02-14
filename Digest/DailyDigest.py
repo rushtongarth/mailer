@@ -24,6 +24,14 @@ class DailyDigest(object):
       len(self.arx_msg),
       dtype=ArXivArticle
     )
+  def __repr__(self):
+    ostr = "<{cn}|{Len}|{dt}>"
+    ostr = ostr.format(**{
+      'cn' : type(self).__name__,
+      'Len': len(self.records),
+      'dt' : self.msg_con['date'].strftime('%Y-%m-%d')
+    })
+    return ostr
   @property
   def listing(self):
     self.__listing()

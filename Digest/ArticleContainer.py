@@ -74,11 +74,14 @@ class ArXivArticle(object):
   def __link(self):
     patt = '\\\\ ( https://arxiv.org/abs'
     locn = self.__pat_match(patt)
-    mtch = self.raw[locn]
-    link = re.match(r'\\\\ \((.*),.*',mtch.item())
-    if link is None:
-      raise RuntimeError('the stupid set link function broke')
-    self._link = link.group(1).strip()
+    if len(locn)==0:
+      self._link = ''
+    else:
+      mtch = self.raw[locn]
+      link = re.match(r'\\\\ \((.*),.*',mtch.item())
+      if link is None:
+        raise RuntimeError('the stupid set link function broke')
+      self._link = link.group(1).strip()
   @property
   def all_cats(self):
     if not hasattr(self,'_all_cats'):
