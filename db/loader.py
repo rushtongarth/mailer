@@ -1,7 +1,7 @@
 
 import os
-import sqlalchemy as sql
 import numpy as np
+import sqlalchemy as sql
 from sqlalchemy.orm import sessionmaker
 from .schema import Base,ArticleBase,EmailBase
 
@@ -11,6 +11,16 @@ def dbinit(dbname):
   DB_LOC = dbname
   engine = sql.create_engine(DB_LOC)
   Base.metadata.create_all(engine)
+
+def get_shas(dbpath=None):
+  dbpath = 'sqlite:////home/stephen/Code/dev/mailer/db/arxiv.articles.db'                                                                              
+  S = sessionmaker(bind=sql.create_engine(dbpath))()
+  stmt = sql.text('select shakey from article')
+  stmt = stmt.columns(ArticleBase.shakey)
+  Q = S.query(ArticleBase.shakey).from_statement(stmt).all()
+  shas = np.fromiter(map(lambda X: X[0], Q),dtype='U64')
+  return shas
+
 
 class DataBaser(object):
   '''database connector class'''
