@@ -1,6 +1,7 @@
 
 import os
 import numpy as np
+import operator as op
 import sqlalchemy as sql
 from sqlalchemy.orm import sessionmaker
 from .schema import Base,ArticleBase,EmailBase
@@ -18,9 +19,19 @@ def get_shas(dbpath=None):
   stmt = sql.text('select shakey from article')
   stmt = stmt.columns(ArticleBase.shakey)
   Q = S.query(ArticleBase.shakey).from_statement(stmt).all()
-  shas = np.fromiter(map(lambda X: X[0], Q),dtype='U64')
+  shas = np.array(Q).squeeze()
   return shas
 
+#def shacomp(from_db,from_em):
+  ##from_db = get_shas(dbpath)
+  ##from_em = np.fromiter(map(op.attrgetter('shakey'),incoming.articles),dtype='U64')
+  #ix = np.setdiff1d(from_em,from_db)
+  #rm = np.where(~np.in1d(from_em,ix))[0]
+  ##for idx in rm:
+  ##  incoming.articles.pop(idx)
+  #return rm
+    
+  
 
 class DataBaser(object):
   '''database connector class'''
@@ -40,9 +51,41 @@ class DataBaser(object):
     return self
   def __exit__(self,*args):
     self.curr_sess.close()
-  
+  def _shas(self):
+    stmt = sql.text('select shakey from article')
+    stmt = stmt.columns(ArticleBase.shakey)
+    Q = self.curr_sess.query(ArticleBase.shakey).from_statement(stmt)
+    self.__shas = np.array(Q.all()).squeeze()
+  @property
+  def shas(self):
+    if not hasattr(self,'__shas'):
+      self._shas()
+    return self.__shas
+  def shacomp(self,incoming):
+    from_em = np.fromiter(
+      map(
+        op.attrgetter('shakey'),
+        incoming.articles
+      ),dtype='U64')
+    ix = np.setdiff1d(from_em,self.shas)
+    if len(ix):
+      rm = np.where(~np.in1d(from_em,ix))[0]
+      rm = sorted(rm,reverse=True)
+      for idx in rm:
+        try:
+          incoming.articles.pop(idx)
+        except IndexError as er:
+          print(idx,rm)
+          raise er
+
   def load_objs(self,list_in):
-    self.curr_sess.add_all([list_in])
+    if isinstance(list_in,list):
+      L = list_in
+    else:
+      L = [list_in]
+    for x in L:
+      self.shacomp(x)
+    self.curr_sess.add_all(L)
     self.curr_sess.commit()
 
   
