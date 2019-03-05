@@ -22,17 +22,6 @@ def get_shas(dbpath=None):
   shas = np.array(Q).squeeze()
   return shas
 
-#def shacomp(from_db,from_em):
-  ##from_db = get_shas(dbpath)
-  ##from_em = np.fromiter(map(op.attrgetter('shakey'),incoming.articles),dtype='U64')
-  #ix = np.setdiff1d(from_em,from_db)
-  #rm = np.where(~np.in1d(from_em,ix))[0]
-  ##for idx in rm:
-  ##  incoming.articles.pop(idx)
-  #return rm
-    
-  
-
 class DataBaser(object):
   '''database connector class'''
   def __init__(self,dbname,dbtype='sqlite:///'):
