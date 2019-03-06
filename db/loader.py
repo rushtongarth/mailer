@@ -57,6 +57,9 @@ class DataBaser(object):
         incoming.articles
       ),dtype='U64')
     ix = np.setdiff1d(from_em,self.shas)
+    ## this is where it is broken.
+    ### should be if len==0 then drop all
+    ###           else drop intersection
     if len(ix):
       rm = np.where(~np.in1d(from_em,ix))[0]
       rm = sorted(rm,reverse=True)
