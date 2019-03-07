@@ -26,9 +26,8 @@ def load_digest(digested,database=DATADIR):
       ArticleBase(**a.format_for_db()) for a in digested.as_dblist()
     ]
     erec.articles = art_list
-    db.curr_sess.add(erec)
-    db.curr_sess.commit()
-  return len(art_list)
+    db.load_objs(erec)
+  return len(erec.articles)
 
 def load_container(MessageContainer,subscriptions,database=DATADIR,idx=-1):
   DD = DailyDigest(MessageContainer,subscriptions,idx)

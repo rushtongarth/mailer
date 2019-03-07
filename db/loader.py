@@ -1,7 +1,7 @@
-
 import os
-import numpy as np
 import operator as op
+import itertools as it
+import numpy as np
 import sqlalchemy as sql
 from sqlalchemy.orm import sessionmaker
 from .schema import Base,ArticleBase,EmailBase
@@ -57,9 +57,6 @@ class DataBaser(object):
         incoming.articles
       ),dtype='U64')
     ix = np.setdiff1d(from_em,self.shas)
-    ## this is where it is broken.
-    ### should be if len==0 then drop all
-    ###           else drop intersection
     if len(ix):
       rm = np.where(~np.in1d(from_em,ix))[0]
       rm = sorted(rm,reverse=True)
@@ -69,15 +66,22 @@ class DataBaser(object):
         except IndexError as er:
           print(idx,rm)
           raise er
+    else:
+      incoming.articles = []
 
   def load_objs(self,list_in):
     if isinstance(list_in,list):
       L = list_in
     else:
       L = [list_in]
-    for x in L:
+    status = [1]*len(L)
+    for e,x in enumerate(L):
       self.shacomp(x)
-    self.curr_sess.add_all(L)
-    self.curr_sess.commit()
+      if len(x.articles)==0:
+        status[e] = 0
+    toload = list(it.compress(L,status))
+    if toload:
+      self.curr_sess.add_all(toload)
+      self.curr_sess.commit()
 
   
