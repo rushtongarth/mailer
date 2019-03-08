@@ -13,19 +13,25 @@ ROOTDIR = os.path.dirname(CURR)
 OUTPDIR = os.path.join(ROOTDIR,ODIR)
 DATADIR = os.path.join(OUTPDIR,'arxiv.articles.db')
 
+def build_erec(digested):
+  '''consume a daily digest and return loadable email
+  '''
+  email_id = int(np.unique(digested.records['mid'])[0])
+  date_str = str(np.unique(digested.records['date_msg'])[0])
+  erec = EmailBase(**{
+    'uid':email_id,
+    'date':date_str
+  })
+  art_list = [
+    ArticleBase(**a.format_for_db()) for a in digested.as_dblist()
+  ]
+  erec.articles = art_list
+  return erec
+
 ## only loads one at a time
 def load_digest(digested,database=DATADIR):
+  erec = build_erec(digested)
   with DataBaser(database) as db:
-    email_id = int(np.unique(digested.records['mid'])[0])
-    date_str = str(np.unique(digested.records['date_msg'])[0])
-    erec = EmailBase(**{
-      'uid':email_id,
-      'date':date_str
-    })
-    art_list = [
-      ArticleBase(**a.format_for_db()) for a in digested.as_dblist()
-    ]
-    erec.articles = art_list
     db.load_objs(erec)
   return len(erec.articles)
 
