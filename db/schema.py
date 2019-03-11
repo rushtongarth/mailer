@@ -22,6 +22,7 @@ class EmailBase(Base):
       i=self.uid,d=self.date,n=len(self.articles)
     )
     return s
+  
 
 
 class ArticleBase(Base):
@@ -43,6 +44,10 @@ class ArticleBase(Base):
     t1 = textwrap.shorten(self.title, width=40)
     lnk = self.link.split('/')[-1]
     return sout.format(d=self.date,t=t1,c=self.pri_cats,l=lnk)
-
-
-  
+  def as_tuple(self):
+    toget = [
+      'all_cats','date','email_id',
+      'link','shakey','title'
+    ]
+    return tuple(getattr(self,x) for x in toget)
+    

@@ -44,8 +44,7 @@ def bulk_loader(MessageContainer,subscriptions):
   mc_len  = len(MessageContainer)
   to_load = [0]*mc_len
   MC = lambda X: (
-    X,
-    DailyDigest(MessageContainer,subscriptions,X)
+    X,DailyDigest(MessageContainer,subscriptions,X)
   )
   for e,dig in map(MC,range(mc_len)):
     erec = EmailBase(**{

@@ -25,7 +25,7 @@ class ArXivArticle(object):
   def __hash__(self):
     return hash(self.shakey)
   def __eq__(self,other):
-    if self.attr['shakey']==other.attr['shakey']:
+    if self.shakey == other.shakey:
       return True
     return False
   def __pat_match(self,patt,mode=None):
