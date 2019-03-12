@@ -4,11 +4,9 @@ from db import DataBaser,EmailBase,ArticleBase
 import os
 import numpy as np
 
-
 THISFILE = os.path.abspath(__file__)
 CURR,FNM = os.path.split(THISFILE)
 ODIR,ext = os.path.splitext(FNM)
-
 ROOTDIR = os.path.dirname(CURR)
 OUTPDIR = os.path.join(ROOTDIR,ODIR)
 DATADIR = os.path.join(OUTPDIR,'arxiv.articles.db')
@@ -57,3 +55,18 @@ def bulk_loader(MessageContainer,subscriptions):
     erec.articles = arts
     to_load[e] = erec
   return to_load
+
+def sha_check(MC,subs,database=DATADIR,idx=-1):
+  with DataBaser(database) as db:
+    db_shas = db.shas
+  if isinstance(idx,int):
+    idx = [idx]
+  DD = [DailyDigest(MC,subs,i) for i in idx]
+  R = map(lambda X: X.as_recarr().shakey,DD)
+  for shas in R:
+    np.intersect1d(shas,db_shas)
+    
+  
+  
+  
+
