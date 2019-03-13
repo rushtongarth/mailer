@@ -1,8 +1,8 @@
-
+import os
+import functools as ft
+import numpy as np
 from Digest import DailyDigest
 from db import DataBaser,EmailBase,ArticleBase
-import os
-import numpy as np
 
 THISFILE = os.path.abspath(__file__)
 CURR,FNM = os.path.split(THISFILE)
@@ -61,10 +61,13 @@ def sha_check(MC,subs,database=DATADIR,idx=-1):
     db_shas = db.shas
   if isinstance(idx,int):
     idx = [idx]
-  DD = [DailyDigest(MC,subs,i) for i in idx]
-  R = map(lambda X: X.as_recarr().shakey,DD)
-  for shas in R:
-    np.intersect1d(shas,db_shas)
+  DD = [DailyDigest(MC,subs,i).as_recarr() for i in idx]
+  tmp_types = [('rec',int),('shakey','U64')]
+  tmp = np.array([(e,sh) for e,X in enumerate(DD) for sh in X.shakey],dtype=tmp_types)
+  new_shas = ft.reduce(np.union1d,map(lambda X: X.shakey,DD)
+  
+  
+    
     
   
   
