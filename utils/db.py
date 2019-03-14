@@ -64,7 +64,7 @@ def sha_check(MC,subs,database=DATADIR,idx=-1):
   DD = [DailyDigest(MC,subs,i).as_recarr() for i in idx]
   tmp_types = [('rec',int),('shakey','U64')]
   tmp = np.array([(e,sh) for e,X in enumerate(DD) for sh in X.shakey],dtype=tmp_types)
-  new_shas = ft.reduce(np.union1d,map(lambda X: X.shakey,DD)
+  new_shas = ft.reduce(np.union1d,map(lambda X: X.shakey,DD))
   
   
     

@@ -71,8 +71,8 @@ class DataBaser(object):
 
   def load_objs(self,list_in):
     # the reason this doesn't work...
-    #  a check is needed prior to comparison with the db
-    #  data prior to load is not necessarily unique, ie
+    #  a check is needed prior to comparison with the
+    #  db data prior to load. is not necessarily unique, ie
     #  the shas for records needs to be ensured unique 
     #  BEFORE attempting to load
     if isinstance(list_in,list):
