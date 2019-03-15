@@ -3,6 +3,7 @@ import operator as op
 from .ArXiv import ArXivDigest
 from .ArticleContainer import ArXivArticle
 from .Article import Article
+import pandas as pd
 
 class DailyDigest(object):
   dt = [
@@ -92,6 +93,18 @@ class DailyDigest(object):
       self._grouping.append((long_cat,rec_slc))
   def as_recarr(self):
     return self.records.view(np.recarray)
+  def as_df(self):
+    cols,_ = zip(*self.dt)
+    tups = []
+    for mid,mdt,sh,ldt,title,pcat,acat,abst,link in self.records:
+      tups.append((
+        mid,mdt,sh,ldt,title,
+        ','.join(pcat),
+        ','.join(acat),
+        '. '.join(abst),
+        link,
+      ))
+    return pd.DataFrame(tups,columns=cols)
   def as_dblist(self):
     dict_arr = np.empty(self.records.shape,dtype=Article)
     for e,el in enumerate(self.records):
