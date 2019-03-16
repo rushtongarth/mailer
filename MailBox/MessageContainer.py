@@ -1,6 +1,5 @@
 import datetime
 import email
-
 import numpy as np
 
 class MessageContainer(object):

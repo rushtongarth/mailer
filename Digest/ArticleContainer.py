@@ -51,8 +51,15 @@ class ArXivArticle(object):
       self.__shakey()
     return self._shakey
   def __shakey(self):
-    bytes_title = bytes(self.title,'utf8')
-    self._shakey = sha256(bytes_title).hexdigest()
+    bytes_attrs = [
+      bytes(str(self.date),'utf8'),
+      bytes(self.title,'utf8'),
+      bytes('. '.join(self.abstract),'utf8'),
+    ]
+    h = sha256()
+    for x in bytes_attrs:
+      h.update(x)
+    self._shakey = h.hexdigest()
   @property
   def title(self): 
     if not hasattr(self,'_title'): 

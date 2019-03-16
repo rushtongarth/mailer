@@ -4,10 +4,7 @@ import sqlalchemy as sql
 from sqlalchemy.orm import sessionmaker,relationship
 from sqlalchemy.ext.declarative import declarative_base
 
-
-
 Base = declarative_base()
-
 
 class EmailBase(Base):
   '''Class container for received emails'''
@@ -22,8 +19,6 @@ class EmailBase(Base):
       i=self.uid,d=self.date,n=len(self.articles)
     )
     return s
-  
-
 
 class ArticleBase(Base):
   '''Class container for arxiv journals'''

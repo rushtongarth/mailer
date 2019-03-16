@@ -65,11 +65,25 @@ def sha_check(MC,subs,database=DATADIR,idx=-1):
   tmp_types = [('rec',int),('shakey','U64')]
   tmp = np.array([(e,sh) for e,X in enumerate(DD) for sh in X.shakey],dtype=tmp_types)
   new_shas = ft.reduce(np.union1d,map(lambda X: X.shakey,DD))
-  
-  
-    
-    
-  
-  
-  
 
+def add_recs(records,count,session,st=0):
+  session.add_all(records[st:st+count]) 
+  try: 
+    session.commit() 
+  except: 
+    session.rollback() 
+    raise
+
+def load_and_report(container,subs):
+  import textwrap
+  LL = [DailyDigest(container,subs,idx=i) for i in range(len(container))]
+  recs = [build_erec(d) for d in LL]
+  ses = sqlorm.sessionmaker(bind=sql.create_engine('sqlite:///'+DATADIR))()
+  for i in range(100):
+    try:
+      add_recs(recs,1,ses,st=i) 
+    except Exception as e:
+      es = 'ERROR:[RECORD %03d] : '%i
+      si = ''.join([' ']*len(es))
+      es1= es + e.args[0]
+      print('\n'.join(textwrap.wrap(es1,subsequent_indent=si)))

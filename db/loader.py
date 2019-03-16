@@ -14,7 +14,7 @@ def dbinit(dbname):
   Base.metadata.create_all(engine)
 
 def get_shas(dbpath=None):
-  dbpath = 'sqlite:////home/stephen/Code/dev/mailer/db/arxiv.articles.db'                                                                              
+  dbpath = 'sqlite:////home/stephen/Code/dev/mailer/db/arxiv.articles.db'
   S = sessionmaker(bind=sql.create_engine(dbpath))()
   stmt = sql.text('select shakey from article')
   stmt = stmt.columns(ArticleBase.shakey)
@@ -39,6 +39,7 @@ class DataBaser(object):
     self.curr_sess = self.Session()
     return self
   def __exit__(self,*args):
+    self.curr_sess.commit()
     self.curr_sess.close()
   def _shas(self):
     stmt = sql.text('select shakey from article')
@@ -87,6 +88,3 @@ class DataBaser(object):
     toload = list(it.compress(L,status))
     if toload:
       self.curr_sess.add_all(toload)
-      self.curr_sess.commit()
-
-  
