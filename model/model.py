@@ -19,3 +19,6 @@ def make_model(src_vocab, tgt_vocab, emb_size=256, h_size=512, num_layers=1, dro
         Generator(hidden_size, tgt_vocab))
 
     return model.cuda() if USE_CUDA else model
+
+
+def train(
