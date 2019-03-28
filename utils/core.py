@@ -78,5 +78,12 @@ def mailprep(digest):
   return grouped
 
 
+def send_mailz(mail_obj,send_from,send_to,cc_to,test=False):
+  mail_obj.set_from(send_from)
+  mail_obj.set_to(send_to)
+  if not test:
+    mail_obj.set_cc(cc_to)
+    ostr = ','.join(cc_to) if isinstance(cc_to,list) else cc_to
+    print("cc'd to: {}".format(ostr))
 
 
