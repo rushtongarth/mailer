@@ -3,6 +3,7 @@ import functools as ft
 import numpy as np
 from Digest import DailyDigest
 from db import DataBaser,EmailBase,ArticleBase
+import pandas as pd
 
 #sqlalchemy.sql.schema.Column
 
@@ -22,7 +23,11 @@ class dbapi(object):
       getattr(ArticleBase,x) for x in col_args
     ]
     no_order = self.Q(*cols)
-    return np.array(no_order.order_by(ordering).all())
+    return no_order.order_by(ordering)
+
+  def as_df(self,*args):
+    query = self.get_cols(*args)
+    return pd.read_sql(query.statement,q.session.bind)
   @property
   def abstracts(self,order_col='date'):
     ordering = getattr(ArticleBase,order_col)
