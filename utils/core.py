@@ -79,7 +79,7 @@ def mailprep(digest):
 
 
 def send_mailz(mail_obj,send_from,send_to,cc_to,test=False):
-  mail_obj.set_from(send_from)
+  mail_obj.set_sender(send_from)
   mail_obj.set_to(send_to)
   if not test:
     mail_obj.set_cc(cc_to)

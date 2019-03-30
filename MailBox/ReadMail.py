@@ -2,7 +2,6 @@ import imaplib
 import email
 import datetime
 import re
-
 import numpy as np
 # custom modules
 from MailBox.MailBox import AbstractMailBox
@@ -87,14 +86,27 @@ class ReadMail(AbstractMailBox):
     # remove non message entries from prep
     self.messages = [x for x in prep if isinstance(x,tuple)]
   def get_all(self):
-    '''get_all
+    '''
+    get_all
+    
     getter for messages
+    
+    :return: list of message tuples
+    :rtype: list 
     '''
     if not hasattr(self,'messages'):
       self.__full_pull()
     return self.messages
-  
-  def as_MessageContainer(self):
+  @property
+  def MessageContainer(self):
+    '''
+    MessageContainer
+    
+    convert messages into :class:`MessageContainer` format
+    
+    :return: message container
+    :rtype: :class:`MessageContainer`
+    '''
     marr = [(x,y) for x,y in self]
     mc = MessageContainer(len(marr),marr)
     return mc

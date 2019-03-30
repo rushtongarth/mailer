@@ -6,10 +6,26 @@ from email.mime.text import MIMEText
 from MailBox.MailBox import AbstractMailBox
 
 class SendMail(AbstractMailBox):
+  '''
+  SendMail
+  
+  Establish a connection to send emails. Can act as a
+  context manager for more convenience and usability
+  
+  :param user: username for account
+  :type user: str
+  :param pswd: password for account
+  :type pswd: str
+  :param location: where in inbox to search for messages
+  :type location: str
+  
+  Example::
+    mail = SendMail('username','password',location='smtp.example.com')
+  '''
   def __init__(self,user,pswd,location="smtp.gmail.com"):
     self.user = user
     self.pswd = pswd
-    self.fold = location
+    self.locn = location
     super().__init__(user,pswd,location)
 
   def set_to(self,to):
@@ -31,27 +47,41 @@ class SendMail(AbstractMailBox):
     else:
       return el
   
-  def set_from(self,sender):
+  def set_sender(self,sender):
     self.sender = sender
-  def get_from(self):
+  def get_sender(self):
     if hasattr(self,'sender'):
       return self.sender
-    self.set_from(self.user)
+    self.set_sender(self.user)
     return self.sender
   
   def __enter__(self):
-    self.conn = smtplib.SMTP_SSL("smtp.gmail.com", 465)
+    self.conn = smtplib.SMTP_SSL(self.locn, 465)
     r,d = self.conn.login(self.user, self.pswd)
     return self
   def __exit__(self,*args):
     self.conn.close()
-  def distribute(self,subj,content):
+  
+  def distribute(self,subject,content):
+    '''Prepare messages for sending
+    
+    :param subject: email subject line
+    :type subject: str
+    :param content: html email content
+    :type html: str
+    :return: status
+    :rtype: int
+    
+    Example::
+      
+      status = SendMailobj.distribute('title','<html><p>Hello world</p></html>')
+    '''
 
     msg_to = self.dist_prep(self.receiver)
     msg = MIMEMultipart('alternative')
-    msg['Subject'] = subj
+    msg['Subject'] = subject
     msg['To']      = msg_to
-    msg['From']    = self.get_from()
+    msg['From']    = self.get_sender()
     if hasattr(self,'cc'):
       msg['Bcc']   = self.dist_prep(self.cc)
     part1 = MIMEText('', 'plain')
@@ -59,10 +89,11 @@ class SendMail(AbstractMailBox):
     msg.attach(part1)
     msg.attach(part2)
     out = self.conn.send_message(msg)
-
+    status = 0
     if len(out):
+      status = 1
       print("errors in sending to:")
       print(out)
-      return 1
-    return 0
+      return status
+    return status
     

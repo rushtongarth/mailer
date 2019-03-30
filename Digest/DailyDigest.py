@@ -6,6 +6,19 @@ from .Article import Article
 import pandas as pd
 
 class DailyDigest(object):
+  '''
+  DailyDigest
+  
+  Produces an object ready for consumption by either the
+  db loader or the message sender
+  
+  :param message_container: a MessageContainer object
+  :type message_container: :class:`MessageContainer`
+  :param subscriptions: list of current subscriptions
+  :type subscriptions: list
+  :param idx: index of message to process (defaults to -1)
+  :type idx: int
+  '''
   dt = [
     ('mid','i8'),('date_msg','M8[us]'),
     ('shakey','U64'), ('date_art','M8[us]'),
