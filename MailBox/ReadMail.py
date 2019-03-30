@@ -1,16 +1,32 @@
-import imaplib,email,datetime,numpy as np,re
+import imaplib
+import email
+import datetime
+import re
 
+import numpy as np
+# custom modules
 from MailBox.MailBox import AbstractMailBox
 from .MailErrors import login_check,unknown_loc,fetch_check,search_check
 from .MessageContainer import MessageContainer
 
 class ReadMail(AbstractMailBox):
-  '''ReadMail Class: establish a connection to read emails
-  Args:
-    user     : username
-    pswd     : password
-    location : folder in which to search
-    sender   : sender to search for
+  '''
+  ReadMail
+  
+  Establish a connection to read emails. Acts as a context 
+  manager for more convenience and usability
+  
+  :param user: username for account
+  :type user: str
+  :param pswd: password for account
+  :type pswd: str
+  :param location: where in inbox to search for messages
+  :type location: str
+  :param sender: sender to search for
+  :type sender: str
+  
+  Example::
+    mail = ReadMail('username','password',"INBOX",'example@example.com')
   '''
   def __init__(self,user,pswd,location,sender):
     self.sk = re.compile(b'.*UID (?P<num>[0-9]{1,}) RFC.*')
@@ -68,7 +84,8 @@ class ReadMail(AbstractMailBox):
   def __full_pull(self):
     idstr = b','.join(self.mid_list)
     prep = self.__fetcher(idstr)
-    self.messages = [x for x in prep if x!=b')']
+    # remove non message entries from prep
+    self.messages = [x for x in prep if isinstance(x,tuple)]
   def get_all(self):
     '''get_all
     getter for messages
