@@ -6,16 +6,22 @@ class MessageContainer(object):
   
   def __init__(self,message_count,message_array):
     '''
-    message_array should contain the message and uid
+    MessageContainer
+    
+    container class for housing emails
+    
+    :param int message_count: number of messages in input
+    :param message_array: array containing the message and uid
+    :type message_array: list[tuple[bytes,bytes]] or list[tuple[str,str]]
     '''
     self.mcount = message_count
     self.marray = message_array
   def __len__(self):
     return self.mcount
   def __iter__(self):
-    return iter(
-      self.__mhelper(i,msg) for i,msg in self.marray
-    )
+    for i,msg in self.marray:
+      yield self.__mhelper(i,msg)
+    #return iter(self.__mhelper(i,msg) for i,msg in self.marray)
   def __to_list(self):
     self.mlist = [
       self.__mhelper(i,msg) for i,msg in self.marray
@@ -36,7 +42,6 @@ class MessageContainer(object):
       'mid'    : i,
       'arr'    : self.message_proc(m)
     }
-  
   def __read_part(self,part):
     # read message parts
     if part.get_content_maintype() != 'text':

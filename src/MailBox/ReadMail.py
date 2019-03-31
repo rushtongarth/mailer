@@ -4,7 +4,7 @@ import datetime
 import re
 import numpy as np
 # custom modules
-from MailBox.MailBox import AbstractMailBox
+from .MailBox import AbstractMailBox
 from .MailErrors import login_check,unknown_loc,fetch_check,search_check
 from .MessageContainer import MessageContainer
 

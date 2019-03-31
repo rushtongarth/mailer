@@ -1,9 +1,15 @@
 import numpy as np
 import operator as op
-from .ArXiv import ArXivDigest
-from .ArticleContainer import ArXivArticle
-from .Article import Article
+import datetime
 import pandas as pd
+from string import punctuation as punct
+
+from src.Digest.ArXiv import ArXivDigest
+from src.Digest.ArticleContainer import ArXivArticle
+#from .Article import Article
+from src.db.schema import ArticleBase,EmailBase
+
+punct = punct.replace('.','')
 
 class DailyDigest(object):
   '''
@@ -15,16 +21,13 @@ class DailyDigest(object):
   :param message_container: a MessageContainer object
   :type message_container: :class:`MessageContainer`
   :param subscriptions: list of current subscriptions
-  :type subscriptions: list
-  :param idx: index of message to process (defaults to -1)
-  :type idx: int
+  :type subscriptions: list[tuple[str,str]]
+  :param int idx: index of message to process (defaults to -1)
   '''
   dt = [
-    ('mid','i8'),('date_msg','M8[us]'),
-    ('shakey','U64'), ('date_art','M8[us]'),
-    ('title','O'), ('pri_cats',object),
-    ('all_cats',object), ('body',object),
-    ('link','U79')
+    ('mid','i8'),('date_msg','M8[us]'),('shakey','U64'),
+    ('date_art','M8[us]'), ('title','O'), ('pri_cats','O'),
+    ('all_cats','O'), ('body','O'), ('link','U79'),
   ]
   def __init__(self,message_container,subscriptions,idx=-1):
     self.sub_arr = np.array(subscriptions)
@@ -65,7 +68,8 @@ class DailyDigest(object):
     mycats = np.zeros(shp,dtype=bool)
     for e,r in enumerate(self.listing):
       _,_,tmp = np.intersect1d(
-        r.pri_cats,tags,return_indices=True)
+        r.pri_cats,tags,return_indices=True
+      )
       mycats[e,tmp]=True
     self._gmat = np.where(mycats,tags,emp)
   @property
@@ -118,17 +122,34 @@ class DailyDigest(object):
         link,
       ))
     return pd.DataFrame(tups,columns=cols)
+  def dateprep(self,obj):
+    cast = obj.astype(datetime.datetime)
+    return cast.strftime("%Y-%m-%d")
+  def body_clean(self,text):
+    tmp = '. '.join(text)
+    npt = ''.join(map(lambda X: ' ' if X in punct else X,tmp))
+    return npt.upper()
   def as_dblist(self):
-    dict_arr = np.empty(self.records.shape,dtype=Article)
+    dict_arr = np.empty(self.records.shape,dtype=ArticleBase)
+    ebase = EmailBase(**{
+      'uid'  : self.records['mid'][0],
+      'date' : self.dateprep(self.records['date_msg'][0]),
+    })
     for e,el in enumerate(self.records):
       data = {
-        'shakey'         : el['shakey'],
-        'date_received'  : el['date_msg'],
-        'title'          : el['title'],
-        'pri_categories' : el['pri_cats'],
-        'all_categories' : el['all_cats'],
-        'body'           : el['body'],
-        'link'           : el['link']
+        'shakey'   : el['shakey'],
+        'date'     : self.dateprep(el['date_art']),
+        'title'    : el['title'],
+        'pri_cats' : ','.join(el['pri_cats']),
+        'all_cats' : ','.join(el['all_cats']),
+        'body'     : self.body_clean(el['body']),
+        'link'     : el['link'],
+        'ncats'    : len(el['pri_cats'])
       }
-      dict_arr[e] = Article(**data)
-    return dict_arr
+      dict_arr[e] = ArticleBase(**data)
+    return ebase,dict_arr
+
+
+
+
+

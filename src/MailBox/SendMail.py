@@ -1,9 +1,12 @@
 
-import os,string,time,smtplib
+import os
+import string
+import time
+import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from MailBox.MailBox import AbstractMailBox
+from .MailBox import AbstractMailBox
 
 class SendMail(AbstractMailBox):
   '''

@@ -51,14 +51,16 @@ class ArXivArticle(object):
       self.__shakey()
     return self._shakey
   def __shakey(self):
-    bytes_attrs = [
-      bytes(str(self.date),'utf8'),
-      bytes(self.title,'utf8'),
-      bytes('. '.join(self.abstract),'utf8'),
-    ]
-    h = sha256()
-    for x in bytes_attrs:
-      h.update(x)
+    #bytes_attrs = [
+      #bytes(str(self.date),'utf8'),
+      #bytes(self.title,'utf8'),
+      #bytes('. '.join(self.abstract),'utf8'),
+      #bytes(self.link,'utf8'),
+    #]
+    #h = sha256()
+    #for x in bytes_attrs:
+      #h.update(x)
+    h = sha256(bytes(self.link,'utf8'))
     self._shakey = h.hexdigest()
   @property
   def title(self): 
