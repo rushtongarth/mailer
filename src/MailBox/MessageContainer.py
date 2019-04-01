@@ -1,4 +1,5 @@
 import datetime
+import operator as op
 import email
 import numpy as np
 
@@ -16,6 +17,22 @@ class MessageContainer(object):
     '''
     self.mcount = message_count
     self.marray = message_array
+  def __repr__(self):
+    ostr = '<{count}|start={d1}|end={d2}>'
+    ostr = ostr.format(
+      count=self.mcount,
+      start=self.__min_date().strftime('%Y-%m-%d'),
+      end=self.__max_date().strftime('%Y-%m-%d')
+    )
+    return ostr
+  def __min_date(self):
+    if not hasattr(self,'_mindate'):
+      self._mindate = min(map(op.itemgetter('date'),self))
+    return self._mindate
+  def __max_date(self):
+    if not hasattr(self,'_maxdate'):
+      self._maxdate = max(map(op.itemgetter('date'),self))
+    return self._maxdate
   def __len__(self):
     return self.mcount
   def __iter__(self):
