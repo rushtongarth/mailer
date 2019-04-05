@@ -19,19 +19,19 @@ class LoadDigest(object):
     # diff function to calculate diffs
     self.sm.set_seqs(X,Y)
     return self.sm.ratio()
-  def __hasdups(self,df,col):
-    bools = df.duplicated(col,keep=False)
-    return bools.any()
+  def __dups(self,attrlist):
+    idx  = np.argsort(attrlist)
+    srt  = attrlist[idx]
+    vals, idx_0, c = np.unique(srt,return_counts=True,return_index=True)
+    vals = vals[c > 1]
+    loc  = np.split(idx,idx_0[1:])
+    loc  = list(filter(lambda X: X.size>1,loc))
+    return vals,loc
   def prep(self):
     attr = ['date','body','link','shakey','title']
     ebase, arts = self.dd.as_dblist()
-    art_attr = zip(*map(op.attrgetter(*attr),arts))
-    art_dict = dict(zip(attr,art_attr))
-    self.df = pd.DataFrame.from_dict(art_dict)
-    if self.__hasdups(self.df,'shakey'):
-      dups = self.df[self.df.duplicated('shakey',keep=False)].copy()
-      dups.update(dups.title.str.upper().str.replace(' ',''))
-      # get ratios and keep low values
-      #notclose=[
-      #  for e,(a,b) in dups[['date'
-      
+    shas = np.fromiter(map(op.attrgetter('shakey'),arts),dtype='U64')
+    vals,loc = self.__dups(shas)
+    if vals:
+      #compare and keep one
+      pass
