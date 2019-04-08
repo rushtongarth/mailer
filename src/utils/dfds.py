@@ -18,7 +18,7 @@ class DataFrameDataset(torchtext.data.Dataset):
     """
     self.examples = examples.apply(SeriesExample.fromSeries, args=(fields,), axis=1).tolist()
     if filter_pred is not None:
-      self.examples = filter(filter_pred, self.examples)
+      self.examples = list(filter(filter_pred, self.examples))
     self.fields = dict(fields)
     # Unpack field tuples
     for n, f in self.fields.items():

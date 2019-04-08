@@ -87,7 +87,8 @@ class DailyDigest(object):
     mid = self.msg_con['mid']
     self._records = np.array(
       [(mid,dte)+rec_attrs(x) for x in self.listing],
-      dtype=self.dt)  
+      dtype=self.dt
+    )
   @property
   def grouping(self):
     if not hasattr(self,'_grouping'):

@@ -23,9 +23,7 @@ pri_cats = pri_cats.applymap(lambda X: '' if X is None else X)
 
 TEXT = torchtext.data.Field(sequential=True,tokenize=lambda X: X.split(' '))
 LABL = torchtext.data.Field(sequential=False,use_vocab=False)
-data_set = [("abstract",TEXT),("cat1",LABL)]
-
-fields = {'body':SRC,'title':TRG}
+fields = {'body':TEXT,'title':LABL}
 
 
 ds = DataFrameDataset(df,fields)
