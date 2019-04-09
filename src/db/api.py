@@ -1,11 +1,13 @@
 import os
 import functools as ft
 import numpy as np
-from Digest import DailyDigest
-from db import DataBaser,EmailBase,ArticleBase
 import pandas as pd
 
-#sqlalchemy.sql.schema.Column
+from src.Digest.DailyDigest import DailyDigest
+from src.db.loader import DataBaser
+from src.db.schema import EmailBase,ArticleBase
+
+
 
 class dbapi(object):
   '''dbapi : database interface to make my life easier'''
@@ -44,7 +46,7 @@ class dbapi(object):
     no_order = self.Q(ArticleBase.title)
     return np.array(no_order.order_by(ordering).all())
   @property
-  def shas(self,order_by='date'):
+  def shas(self,order_col='date'):
     ordering = getattr(ArticleBase,order_col)
     no_order = self.Q(ArticleBase.shakey)
     return np.array(no_order.order_by(ordering).all())
