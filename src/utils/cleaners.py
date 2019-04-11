@@ -4,6 +4,7 @@ import numpy as np
 
 import sqlalchemy as sql
 import sqlalchemy.orm as sqlorm
+from contextlib import contextmanager
 
 from src.Digest.DailyDigest import DailyDigest
 from src.db.api import dbapi
@@ -64,9 +65,22 @@ def dedup(arts):
 def dedup_load(digest):
   ebase,arts = digest.as_dblist()
   dup_idx, de_duped = dedup(arts)
-  
   ebase.articles = de_duped.tolist()
   return ebase
 
-
+@contextmanager
+def session_scope(dbdir,dbfile):
+  """Provide a transactional scope around a series of operations."""
+  path = os.path.join(dbdir,dbfile)
+  engine = sql.create_engine('sqlite:///'+path)
+  _ses = sqlorm.sessionmaker(bind=engine)
+  session = _ses()
+  try:
+    yield session
+    session.commit()
+  except:
+    session.rollback()
+    raise
+  finally:
+    session.close()
 
