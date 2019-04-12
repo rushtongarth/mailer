@@ -11,9 +11,24 @@ from src.db.api import dbapi
 from src.db.loader import DataBaser
 from src.db.schema import EmailBase,ArticleBase
 
-DBDIR = '/home/stephen/Code/dev/mailer/src/db'                                                                                                       
-DBFILE = 'arxiv.articles.db'
 
+@contextmanager
+def session_scope(dbdir,dbfile):
+  """Provide a transactional scope around a series of operations."""
+  path = os.path.join(dbdir,dbfile)
+  engine = sql.create_engine('sqlite:///'+path)
+  _ses = sqlorm.sessionmaker(bind=engine)
+  session = _ses()
+  try:
+    yield session
+    session.commit()
+  except:
+    session.rollback()
+    raise
+  finally:
+    session.close()
+# TODO
+# bundle into class
 def self_dups(arts):
   shas = np.fromiter(map(op.attrgetter('shakey'),arts),dtype='U64')
   idx  = np.argsort(shas)
@@ -47,7 +62,6 @@ def db_sha_comp(arts):
   # compare sha vals
   inter,idx_db,idx_ms = np.intersect1d(dbshas,msshas,return_indices=True)
   # isolate dups and uniques
-  #dups = idx_ms
   uniq = arts[~np.isin(idx_only,idx_ms)]
   return idx_ms, uniq
 
@@ -67,20 +81,4 @@ def dedup_load(digest):
   dup_idx, de_duped = dedup(arts)
   ebase.articles = de_duped.tolist()
   return ebase
-
-@contextmanager
-def session_scope(dbdir,dbfile):
-  """Provide a transactional scope around a series of operations."""
-  path = os.path.join(dbdir,dbfile)
-  engine = sql.create_engine('sqlite:///'+path)
-  _ses = sqlorm.sessionmaker(bind=engine)
-  session = _ses()
-  try:
-    yield session
-    session.commit()
-  except:
-    session.rollback()
-    raise
-  finally:
-    session.close()
 
