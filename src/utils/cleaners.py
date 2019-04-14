@@ -27,58 +27,81 @@ def session_scope(dbdir,dbfile):
     raise
   finally:
     session.close()
-# TODO
+class Cleanup(object):
+  def __init__(self,digests,dbdir,dbfile):
+    self.digested = [
+      SingleCleanup(d,dbdir,dbfile) for d in digests
+    ]
+  def get_uniq(self):
+    
+    for sc in self.digested:
+      dups, ebase = sc.dedup_ebase()
+
+
 # bundle into class
-def self_dups(arts):
-  shas = np.fromiter(map(op.attrgetter('shakey'),arts),dtype='U64')
-  idx  = np.argsort(shas)
-  srt  = shas[idx]
-  vals, idx_0, c = np.unique(srt,return_counts=True,return_index=True)
-  vals = vals[c > 1]
-  loc  = filter(lambda X: X.size>1,np.split(idx,idx_0[1:]))
-  loc  = np.array([x for x in loc]).squeeze()
-  return vals,loc
+class SingleCleanup(object):
+  def __init__(self,digested,db_dir,db_file):
+    self.ebase, self._arts = digested.as_dblist()
+    self.__dbp = os.path.join(db_dir,db_file)
+    self.dbp   = 'sqlite:///'+self.__dbp
+    self.__dups()
+  def get_idx(self,arts=None):
+    if arts is None:
+      return np.arange(len(self._arts))
+    return np.arange(len(arts))
+  def __mess_shas(self):
+    self._msg_shas = np.fromiter(
+      map(op.attrgetter('shakey'),self._arts),
+      dtype='U64')
+  def __db_shas(self):
+    ses  = sqlorm.sessionmaker(
+      bind=sql.create_engine(self.dbp))()
+    shas = dbapi(ses).get_cols('shakey').all()
+    self._db_shas = np.array([x[0] for x in shas], dtype='U64')
+  @property
+  def msg_shas(self):
+    if not hasattr(self,'_msg_shas'):
+      self.__mess_shas()
+    return self._msg_shas
+  @property
+  def db_shas(self):
+    if not hasattr(self,'_db_shas'):
+      self.__db_shas()
+    return self._db_shas
+  def __dups(self):
+    shas, idx = self.msg_shas, np.argsort(self.msg_shas)
+    vals, idx0, c = np.unique(
+      shas[idx],return_counts=True,return_index=True)
+    splt = np.split(idx,idx0[1:])
+    loc  = filter(lambda X: X.size>1,splt)
+    self.dup_vals = vals[c > 1]
+    self.dup_idx  = np.array([x for x in loc]).squeeze()
+  def sha_comp(self):
+    # recalc index
+    idx_only = self.get_idx()
+    # get db shas and message shas, then compare sha vals
+    inter, idx_db, idx_ms = np.intersect1d(self.db_shas,self.msg_shas,return_indices=True)
+    self.idx_ms = idx_ms
+    # isolate dups and uniques
+    self.uniq = self._arts[~np.isin(idx_only,idx_ms)]
+    return self.idx_ms, self.uniq
+  def dedup(self):
+    idx_arts = self.get_idx()
+    _arts = self._arts[~np.isin(idx_arts,self.dup_idx)]
+    idx, uniq = self.sha_comp()
+    shift = idx + np.sum(
+      [np.array(i < idx,dtype=int) for i in self.dup_idx],
+      axis=0
+    )
+    dupped = np.concatenate([self.dup_idx,shift])
+    self.dupart = self._arts[dupped]
+    self.arts   = self._arts[~np.isin(idx_arts,dupped)]
+    return self.dupart, self.arts
+  def dedup_ebase(self):
+    d,a = self.dedup()
+    self.ebase.articles = self.arts.tolist()
+    return self.dupart, self.ebase
 
-def get_idx(array):
-  return np.arange(len(array))
 
-def get_db_shas(db_dir,db_file):
-  engine = sql.create_engine('sqlite:///'+os.path.join(DBDIR,DBFILE))
-  ses = sqlorm.sessionmaker(bind=engine)()
-  api = dbapi(ses)
-  return np.array([x[0] for x in api.get_cols('shakey').all()],dtype='U64')
 
-def get_mess_shas(article_array):
-  sk = op.attrgetter('shakey')
-  mp = map(sk,article_array)
-  return np.fromiter(mp,dtype='U64')
-
-def db_sha_comp(arts):
-  # recalc index
-  idx_only = get_idx(arts)
-  # get db shas and message shas
-  dbshas = get_db_shas(DBDIR,DBFILE)
-  msshas = get_mess_shas(arts)
-  # compare sha vals
-  inter,idx_db,idx_ms = np.intersect1d(dbshas,msshas,return_indices=True)
-  # isolate dups and uniques
-  uniq = arts[~np.isin(idx_only,idx_ms)]
-  return idx_ms, uniq
-
-def dedup(arts):
-  idx_arts = get_idx(arts)
-  val,mess_dup = self_dups(arts)
-  _arts = arts[~np.isin(idx_arts,mess_dup)]
-  idx, uniq = db_sha_comp(_arts)
-  shift = [np.array(i < idx,dtype=int) for i in mess_dup]
-  shift = np.sum(shift,axis=0)
-  dup_idx = np.concatenate([mess_dup,idx+shift])
-  de_duped = arts[~np.isin(idx_arts,dup_idx)]
-  return dup_idx, de_duped
-
-def dedup_load(digest):
-  ebase,arts = digest.as_dblist()
-  dup_idx, de_duped = dedup(arts)
-  ebase.articles = de_duped.tolist()
-  return ebase
 
