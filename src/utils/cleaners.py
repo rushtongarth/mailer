@@ -1,11 +1,9 @@
 import os
 import operator as op
 import numpy as np
-
 import sqlalchemy as sql
 import sqlalchemy.orm as sqlorm
 from contextlib import contextmanager
-
 from src.Digest.DailyDigest import DailyDigest
 from src.db.api import dbapi
 from src.db.loader import DataBaser
@@ -27,23 +25,26 @@ def session_scope(dbdir,dbfile):
     raise
   finally:
     session.close()
+
 class Cleanup(object):
   def __init__(self,digests,dbdir,dbfile):
-    self.digested = [
-      SingleCleanup(d,dbdir,dbfile) for d in digests
-    ]
+    self.digested = digests
+    self.p1 = dbdir
+    self.p2 = dbfile
   def get_uniq(self):
-    
-    for sc in self.digested:
-      dups, ebase = sc.dedup_ebase()
+    C = np.empty(len(self.digested),dtype=tuple)
+    for e,digs in enumerate(self.digested):
+      sc = SingleCleanup(digs,self.p1,self.p2)
+      C[e] = sc.dedup_ebase()
+    return C
+      
 
 
 # bundle into class
 class SingleCleanup(object):
   def __init__(self,digested,db_dir,db_file):
     self.ebase, self._arts = digested.as_dblist()
-    self.__dbp = os.path.join(db_dir,db_file)
-    self.dbp   = 'sqlite:///'+self.__dbp
+    self.dbp   = 'sqlite:///'+os.path.join(db_dir,db_file)
     self.__dups()
   def get_idx(self,arts=None):
     if arts is None:
@@ -93,7 +94,7 @@ class SingleCleanup(object):
       [np.array(i < idx,dtype=int) for i in self.dup_idx],
       axis=0
     )
-    dupped = np.concatenate([self.dup_idx,shift])
+    dupped = np.concatenate([self.dup_idx,shift]).astype(int)
     self.dupart = self._arts[dupped]
     self.arts   = self._arts[~np.isin(idx_arts,dupped)]
     return self.dupart, self.arts
