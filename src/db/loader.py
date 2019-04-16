@@ -9,15 +9,34 @@ from .schema import Base,ArticleBase,EmailBase
 
 
 def dbinit(dbname):
-  DB_LOC = dbname
-  engine = sql.create_engine(DB_LOC)
+  '''create database if it doesn't exist
+  
+  To use the method one only needs to pass
+  a string consisting of the database type
+  and the fully qualified path; for Example::
+      
+      db_path = /path/to/db/example.db
+      db_type = 'sqlite:///'
+      dbinit(db_type+db_path)
+  
+  :param str dbname: full path to database with type string
+  :returns: None
+  '''
+  engine = sql.create_engine(dbname)
   Base.metadata.create_all(engine)
 
-def get_shas(dbpath):
-  S = sessionmaker(bind=sql.create_engine(dbpath))()
+def get_shas(session):
+  '''getter for database shakeys
+  
+  :param session: database session
+  :type session: :class:`sqlalchemy.orm.session.Session`
+  :returns: shakeys found from database session
+  :rtype: :class:`numpy.ndarray`
+  '''
+  #S = sessionmaker(bind=sql.create_engine(dbpath))()
   stmt = sql.text('select shakey from article')
   stmt = stmt.columns(ArticleBase.shakey)
-  Q = S.query(ArticleBase.shakey).from_statement(stmt).all()
+  Q = session.query(ArticleBase.shakey).from_statement(stmt).all()
   shas = np.array(Q).squeeze()
   return shas
 

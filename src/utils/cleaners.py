@@ -3,28 +3,12 @@ import operator as op
 import numpy as np
 import sqlalchemy as sql
 import sqlalchemy.orm as sqlorm
-from contextlib import contextmanager
 from src.Digest.DailyDigest import DailyDigest
 from src.db.api import dbapi
 from src.db.loader import DataBaser
 from src.db.schema import EmailBase,ArticleBase
 
 
-@contextmanager
-def session_scope(dbdir,dbfile):
-  """Provide a transactional scope around a series of operations."""
-  path = os.path.join(dbdir,dbfile)
-  engine = sql.create_engine('sqlite:///'+path)
-  _ses = sqlorm.sessionmaker(bind=engine)
-  session = _ses()
-  try:
-    yield session
-    session.commit()
-  except:
-    session.rollback()
-    raise
-  finally:
-    session.close()
 
 class Cleanup(object):
   def __init__(self,digests,dbdir,dbfile):
@@ -37,8 +21,6 @@ class Cleanup(object):
       sc = SingleCleanup(digs,self.p1,self.p2)
       C[e] = sc.dedup_ebase()
     return C
-      
-
 
 # bundle into class
 class SingleCleanup(object):
