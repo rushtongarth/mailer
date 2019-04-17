@@ -24,14 +24,27 @@ class Cleanup(object):
 
 # bundle into class
 class SingleCleanup(object):
-  def __init__(self,digested,db_dir,db_file):
+  '''
+  perform clean up on input daily digest
+  clean up consists of 
+  
+  1. deduping within a single digest
+  
+  2. deduping records that already exist 
+     in the database
+  
+  Currrently database functionality is built
+  around sqlite but this could be generalized
+  
+  :param digested: preprocessed digest object
+  :type digested: :class:`src.Digest.DailyDigest`
+  :param str db_dir: database directory
+  :param str db_file: database filename
+  '''
+  def __init__(self,digested,db_dir,db_file,session=None):
     self.ebase, self._arts = digested.as_dblist()
     self.dbp   = 'sqlite:///'+os.path.join(db_dir,db_file)
     self.__dups()
-  def get_idx(self,arts=None):
-    if arts is None:
-      return np.arange(len(self._arts))
-    return np.arange(len(arts))
   def __mess_shas(self):
     self._msg_shas = np.fromiter(
       map(op.attrgetter('shakey'),self._arts),
@@ -61,22 +74,24 @@ class SingleCleanup(object):
     self.dup_idx  = np.array([x for x in loc]).squeeze()
   def sha_comp(self):
     # recalc index
-    idx_only = self.get_idx()
+    idx_only = np.arange(len(self._arts))
     # get db shas and message shas, then compare sha vals
-    inter, idx_db, idx_ms = np.intersect1d(self.db_shas,self.msg_shas,return_indices=True)
+    inter, idx_db, idx_ms = np.intersect1d(
+      self.db_shas,self.msg_shas,return_indices=True
+    )
     self.idx_ms = idx_ms
-    # isolate dups and uniques
+    # isolate dups and uniques in message
     self.uniq = self._arts[~np.isin(idx_only,idx_ms)]
     return self.idx_ms, self.uniq
   def dedup(self):
-    idx_arts = self.get_idx()
-    _arts = self._arts[~np.isin(idx_arts,self.dup_idx)]
+    idx_arts = np.arange(len(self._arts))
     idx, uniq = self.sha_comp()
-    shift = idx + np.sum(
-      [np.array(i < idx,dtype=int) for i in self.dup_idx],
-      axis=0
-    )
-    dupped = np.concatenate([self.dup_idx,shift]).astype(int)
+    # adapt this for removing idx_ms case
+    #idx + np.sum(
+    #  [np.array(i < idx,dtype=int) for i in self.dup_idx],
+    #  axis=0
+    #)
+    dupped = np.concatenate([self.dup_idx,idx]).astype(int)
     self.dupart = self._arts[dupped]
     self.arts   = self._arts[~np.isin(idx_arts,dupped)]
     return self.dupart, self.arts
