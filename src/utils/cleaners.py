@@ -40,19 +40,27 @@ class SingleCleanup(object):
   :type digested: :class:`src.Digest.DailyDigest`
   :param str db_dir: database directory
   :param str db_file: database filename
+  :param session: database session
+  :type session: :class:`sqlalchemy.orm.session.Session`
   '''
-  def __init__(self,digested,db_dir,db_file,session=None):
+  def __init__(self,digested,db_dir=None,db_file=None,session=None):
     self.ebase, self._arts = digested.as_dblist()
-    self.dbp   = 'sqlite:///'+os.path.join(db_dir,db_file)
-    self.__dups()
+    if session:
+      self.ses = session
+    else:
+      self.dbp = 'sqlite:///'
+      self.dbp+= os.path.join(db_dir,db_file)
+      engine = sql.create_engine(self.dbp)
+      self.ses  = sqlorm.sessionmaker(bind=engine)()
+
+    self.__mess_dups()
+    
   def __mess_shas(self):
     self._msg_shas = np.fromiter(
       map(op.attrgetter('shakey'),self._arts),
       dtype='U64')
   def __db_shas(self):
-    ses  = sqlorm.sessionmaker(
-      bind=sql.create_engine(self.dbp))()
-    shas = dbapi(ses).get_cols('shakey').all()
+    shas = dbapi(self.ses).get_cols('shakey').all()
     self._db_shas = np.array([x[0] for x in shas], dtype='U64')
   @property
   def msg_shas(self):
@@ -64,7 +72,7 @@ class SingleCleanup(object):
     if not hasattr(self,'_db_shas'):
       self.__db_shas()
     return self._db_shas
-  def __dups(self):
+  def __mess_dups(self):
     shas, idx = self.msg_shas, np.argsort(self.msg_shas)
     vals, idx0, c = np.unique(
       shas[idx],return_counts=True,return_index=True)
@@ -74,17 +82,17 @@ class SingleCleanup(object):
     self.dup_idx  = np.array([x for x in loc]).squeeze()
   def sha_comp(self):
     # recalc index
-    idx_only = np.arange(len(self._arts))
+    idx_arts = np.arange(self._arts.shape[0])
     # get db shas and message shas, then compare sha vals
     inter, idx_db, idx_ms = np.intersect1d(
       self.db_shas,self.msg_shas,return_indices=True
     )
-    self.idx_ms = idx_ms
     # isolate dups and uniques in message
-    self.uniq = self._arts[~np.isin(idx_only,idx_ms)]
-    return self.idx_ms, self.uniq
+    self.idx_ms = idx_ms
+    uniq = self._arts[~np.isin(idx_arts,idx_ms)]
+    return self.idx_ms, uniq
   def dedup(self):
-    idx_arts = np.arange(len(self._arts))
+    idx_arts = np.arange(self._arts.shape[0])
     idx, uniq = self.sha_comp()
     # adapt this for removing idx_ms case
     #idx + np.sum(
