@@ -12,6 +12,23 @@ from src.db.loader import DataBaser
 
 punct = string.punctuation
 
+class LoadHelper(object):
+  def __init__(self,session):
+    self.sessn = session
+    
+  def load(self,toload):
+    if isintance(toload,(list,tuple)):
+      add_op = self.sessn.add_all
+    else:
+      add_op = self.sessn.add
+    try:
+      add_op(toload)
+      self.sessn.commit()
+      retval = 0
+    except:
+      self.session.rollback()
+      retval = -1
+
 
 class LoadDigest(ContextDecorator):
   """Provide a transactional scope around a series of operations.
@@ -27,13 +44,7 @@ class LoadDigest(ContextDecorator):
   def __enter__(self):
     _ses = sqlorm.sessionmaker(bind=self.engine)
     self.session = _ses()
-    return self.session
+    return LoadHelper(self.session)
   def __exit__(self):
-    self.loader()
     self.session.close()
-  def loader(self):
-    try:
-      self.session.commit()
-    except:
-      self.session.rollback()
-
+  

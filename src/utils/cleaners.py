@@ -84,29 +84,22 @@ class SingleCleanup(object):
     # recalc index
     idx_arts = np.arange(self._arts.shape[0])
     # get db shas and message shas, then compare sha vals
-    inter, idx_db, idx_ms = np.intersect1d(
+    ixn, idb, self.idx_ms = np.intersect1d(
       self.db_shas,self.msg_shas,return_indices=True
     )
     # isolate dups and uniques in message
-    self.idx_ms = idx_ms
-    uniq = self._arts[~np.isin(idx_arts,idx_ms)]
+    uniq = self._arts[~np.isin(idx_arts,self.idx_ms)]
     return self.idx_ms, uniq
   def dedup(self):
     idx_arts = np.arange(self._arts.shape[0])
     idx, uniq = self.sha_comp()
-    # adapt this for removing idx_ms case
-    #idx + np.sum(
-    #  [np.array(i < idx,dtype=int) for i in self.dup_idx],
-    #  axis=0
-    #)
     dupped = np.concatenate([self.dup_idx,idx]).astype(int)
-    self.dupart = self._arts[dupped]
     self.arts   = self._arts[~np.isin(idx_arts,dupped)]
-    return self.dupart, self.arts
+    return self._arts[self.dup_idx], self._arts[idx], self.arts
   def dedup_ebase(self):
-    d,a = self.dedup()
+    mgdups,dbdups,a = self.dedup()
     self.ebase.articles = self.arts.tolist()
-    return self.dupart, self.ebase
+    return mgdups, self.ebase
 
 
 
