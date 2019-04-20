@@ -28,7 +28,7 @@ class CoreLoader(object):
     return os.path.exists(str_in)
   def __loadconfig(self):
     self.C = configparser.ConfigParser(
-      interpolation=configparser.ExtendedInterpolation()
+      interpolation = configparser.ExtendedInterpolation()
     )
     with open(self.conf,'r') as cf:
       self.C.read_file(cf)
