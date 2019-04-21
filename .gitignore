@@ -82,9 +82,10 @@ venv.bak/
 /site
 # mypy
 .mypy_cache/
-# No use trying to push the db or config files
+# No use trying to push data files
 *.db
 *.conf
 *.txt
+*.pkl
 # Disable pushing swap files
 *.kate-swp

@@ -11,15 +11,21 @@ from src.db.schema import EmailBase,ArticleBase
 
 
 class Cleanup(object):
-  def __init__(self,digests,dbdir,dbfile):
+  def __init__(self,digests,db_dir=None,db_file=None,session=None):
     self.digested = digests
-    self.p1 = dbdir
-    self.p2 = dbfile
+    if session:
+      self.ses = session
+    else:
+      self.dbp = 'sqlite:///'
+      self.dbp+= os.path.join(db_dir,db_file)
+      engine = sql.create_engine(self.dbp)
+      self.ses  = sqlorm.sessionmaker(bind=engine)()
   def get_uniq(self):
     C = np.empty(len(self.digested),dtype=tuple)
     for e,digs in enumerate(self.digested):
       sc = SingleCleanup(digs,self.p1,self.p2)
-      C[e] = sc.dedup_ebase()
+      mgdups, dbdups, ebase = sc.dedup_ebase()
+      C[e] = ebase
     return C
 
 # bundle into class
@@ -79,7 +85,7 @@ class SingleCleanup(object):
     splt = np.split(idx,idx0[1:])
     loc  = filter(lambda X: X.size>1,splt)
     self.dup_vals = vals[c > 1]
-    self.dup_idx  = np.array([x for x in loc]).squeeze()
+    self.dup_idx  = np.array([x for x in loc]).squeeze().astype(int)
   def sha_comp(self):
     # recalc index
     idx_arts = np.arange(self._arts.shape[0])
@@ -99,7 +105,7 @@ class SingleCleanup(object):
   def dedup_ebase(self):
     mgdups,dbdups,a = self.dedup()
     self.ebase.articles = self.arts.tolist()
-    return mgdups, self.ebase
+    return mgdups, dbdups, self.ebase
 
 
 

@@ -1,16 +1,16 @@
-
+import os
 import operator as op
 import itertools as it
 import functools as ft
-import string
 import numpy as np
 import pandas as pd
 import sqlalchemy as sql
+import sqlalchemy.orm as sqlorm
 
 from contextlib import ContextDecorator
 from src.db.loader import DataBaser
 
-punct = string.punctuation
+
 
 class LoadHelper(object):
   def __init__(self,session):
@@ -44,7 +44,18 @@ class LoadDigest(ContextDecorator):
   def __enter__(self):
     _ses = sqlorm.sessionmaker(bind=self.engine)
     self.session = _ses()
-    return LoadHelper(self.session)
-  def __exit__(self):
+    return self.session
+  def __exit__(self,exc_type, exc_value, traceback):
     self.session.close()
-  
+    
+
+#LD = LoadDigest(p1,p2)  
+#for dg in D: 
+  #with LD as sess: 
+    #cxn = dbapi.dbapi(sess) 
+    #clean = SingleCleanup(dg,session=sess) 
+    #mgdups, dbdups, ebase = clean.dedup_ebase() 
+    #cxn.load_single_ebase(ebase)
+#
+
+
