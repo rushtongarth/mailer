@@ -13,7 +13,9 @@ def dbinit(dbname):
   
   To use the method one only needs to pass
   a string consisting of the database type
-  and the fully qualified path; for Example::
+  and the fully qualified path;
+  
+  Example::
       
       db_path = /path/to/db/example.db
       db_type = 'sqlite:///'

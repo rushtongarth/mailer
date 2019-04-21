@@ -145,7 +145,8 @@ class DailyDigest(object):
         'all_cats' : ','.join(el['all_cats']),
         'body'     : self.body_clean(el['body']),
         'link'     : el['link'],
-        'ncats'    : len(el['pri_cats'])
+        'ncats'    : len(el['pri_cats']),
+        'email_id' : self.records['mid'][0]
       }
       dict_arr[e] = ArticleBase(**data)
     return ebase,dict_arr

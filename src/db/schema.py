@@ -8,7 +8,7 @@ Base = declarative_base()
 
 class EmailBase(Base):
   '''Class container for received emails'''
-  __tablename__ = 'email'
+  __tablename__ = 'Email'
   id       = sql.Column(sql.Integer,primary_key=True)
   uid      = sql.Column(sql.Integer)
   date     = sql.Column(sql.String)
@@ -31,7 +31,7 @@ class ArticleBase(Base):
   body     = sql.Column(sql.Text)
   link     = sql.Column(sql.String)
   ncats    = sql.Column(sql.Integer)
-  email_id = sql.Column(sql.Integer, sql.ForeignKey('email.uid'))
+  email_id = sql.Column(sql.Integer, sql.ForeignKey('Email.uid'))
   email    = relationship('EmailBase', back_populates="articles")
   
   def __repr__(self):

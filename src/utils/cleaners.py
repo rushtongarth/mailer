@@ -97,10 +97,10 @@ class SingleCleanup(object):
     uniq = self._arts[~np.isin(idx_arts,self.idx_ms)]
     return self.idx_ms, uniq
   def dedup(self):
-    idx_arts = np.arange(self._arts.shape[0])
+    idx_arts  = np.arange(self._arts.shape[0])
     idx, uniq = self.sha_comp()
-    dupped = np.concatenate([self.dup_idx,idx]).astype(int)
-    self.arts   = self._arts[~np.isin(idx_arts,dupped)]
+    dupped    = np.concatenate([self.dup_idx,idx]).astype(int)
+    self.arts = self._arts[~np.isin(idx_arts,dupped)]
     return self._arts[self.dup_idx], self._arts[idx], self.arts
   def dedup_ebase(self):
     mgdups,dbdups,a = self.dedup()
