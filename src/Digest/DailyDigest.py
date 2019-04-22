@@ -112,14 +112,12 @@ class DailyDigest(object):
   def as_recarr(self):
     return self.records.view(np.recarray)
   def as_df(self):
-    cols,_ = zip(*self.dt)
+    cols, _ = zip(*self.dt)
     tups = []
     for mid,mdt,sh,ldt,title,pcat,acat,abst,link in self.records:
       tups.append((
-        mid,mdt,sh,ldt,title,
-        ','.join(pcat),
-        ','.join(acat),
-        '. '.join(abst),
+        mid, mdt, sh, ldt, title,
+        ','.join(pcat), ','.join(acat), '. '.join(abst),
         link,
       ))
     return pd.DataFrame(tups,columns=cols)
@@ -133,7 +131,7 @@ class DailyDigest(object):
   def as_dblist(self):
     dict_arr = np.empty(self.records.shape,dtype=ArticleBase)
     ebase = EmailBase(**{
-      'uid'  : self.records['mid'][0],
+      'uid'  : int(self.records['mid'][0]),
       'date' : self.dateprep(self.records['date_msg'][0]),
     })
     for e,el in enumerate(self.records):
@@ -146,7 +144,8 @@ class DailyDigest(object):
         'body'     : self.body_clean(el['body']),
         'link'     : el['link'],
         'ncats'    : len(el['pri_cats']),
-        'email_id' : self.records['mid'][0]
+        'email_id' : int(self.records['mid'][0]),
+        #'email'    : ebase,
       }
       dict_arr[e] = ArticleBase(**data)
     return ebase,dict_arr

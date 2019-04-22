@@ -62,23 +62,28 @@ class SingleCleanup(object):
     self.__mess_dups()
     
   def __mess_shas(self):
+    ''' '''
     self._msg_shas = np.fromiter(
       map(op.attrgetter('shakey'),self._arts),
       dtype='U64')
   def __db_shas(self):
+    ''' '''
     shas = dbapi(self.ses).get_cols('shakey').all()
     self._db_shas = np.array([x[0] for x in shas], dtype='U64')
   @property
   def msg_shas(self):
+    ''' '''
     if not hasattr(self,'_msg_shas'):
       self.__mess_shas()
     return self._msg_shas
   @property
   def db_shas(self):
+    ''' '''
     if not hasattr(self,'_db_shas'):
       self.__db_shas()
     return self._db_shas
   def __mess_dups(self):
+    ''' '''
     shas, idx = self.msg_shas, np.argsort(self.msg_shas)
     vals, idx0, c = np.unique(
       shas[idx],return_counts=True,return_index=True)
@@ -87,6 +92,7 @@ class SingleCleanup(object):
     self.dup_vals = vals[c > 1]
     self.dup_idx  = np.array([x for x in loc]).squeeze().astype(int)
   def sha_comp(self):
+    ''' '''
     # recalc index
     idx_arts = np.arange(self._arts.shape[0])
     # get db shas and message shas, then compare sha vals
@@ -97,6 +103,7 @@ class SingleCleanup(object):
     uniq = self._arts[~np.isin(idx_arts,self.idx_ms)]
     return self.idx_ms, uniq
   def dedup(self):
+    ''' '''
     idx_arts  = np.arange(self._arts.shape[0])
     idx, uniq = self.sha_comp()
     dupped    = np.concatenate([self.dup_idx,idx]).astype(int)
