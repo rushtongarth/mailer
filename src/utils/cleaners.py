@@ -5,8 +5,7 @@ import sqlalchemy as sql
 import sqlalchemy.orm as sqlorm
 from src.Digest.DailyDigest import DailyDigest
 from src.db.api import dbapi
-from src.db.loader import DataBaser
-from src.db.schema import EmailBase,ArticleBase
+from src.db.schema import EmailBase, ArticleBase
 
 
 
@@ -22,12 +21,11 @@ class Cleanup(object):
       self.ses  = sqlorm.sessionmaker(bind=engine)()
   def get_uniq(self):
     
-    C = np.empty(len(self.digested),dtype=tuple)
+    C = np.empty(len(self.digested),dtype=EmailBase)
     for e,digs in enumerate(self.digested):
       sc = SingleCleanup(digs,self.p1,self.p2)
       mgdups, dbdups, ebase = sc.dedup_ebase()
-      C[e] = ebase
-    
+      C[e] = sc.ebase
     return C
 
 
