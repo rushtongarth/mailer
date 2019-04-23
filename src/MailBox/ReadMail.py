@@ -27,12 +27,13 @@ class ReadMail(AbstractMailBox):
   Example::
     mail = ReadMail('username','password',"INBOX",'example@example.com')
   '''
-  def __init__(self,user,pswd,location,sender):
+  def __init__(self,user,pswd,location,sender,index=None):
     self.sk = re.compile(b'.*UID (?P<num>[0-9]{1,}) RFC.*')
     self.user = user
     self.pswd = pswd
     self.folder = location
     self.sender = sender
+    self.idx = index
     super().__init__(user,pswd,location)
   def __enter__(self):
     self.mbox = imaplib.IMAP4_SSL('imap.gmail.com')
@@ -42,23 +43,28 @@ class ReadMail(AbstractMailBox):
     unknown_loc(r,self.folder,d)
     # load available ids to object assuming everything else worked
     self._ids()
-    self.__full_pull()
+    if self.idx is not None:
+      if not isinstance(self.idx,(list,tuple)):
+        self.idx = list(self.idx)
+      self.__subset(self.idx)
+    else:
+      self.__full_pull()
     return self
   def __exit__(self,*args):
     self.mbox.close()
 
   def __len__(self):
     '''length of marray'''
-    return len(self.messages)
+    return len(self._messages)
   
   def __iter__(self):
     '''iterator for messages'''
-    for head,mess in self.messages:
+    for head,mess in self._messages:
       pr = self.sk.match(head)
       mt = email.message_from_bytes(mess)
       yield pr.group('num'),mt
   def __getitem__(self,idx):
-    tmp = self.messages[idx]
+    tmp = self._messages[idx]
     pr = self.sk.match(tmp[0])
     mt = email.message_from_bytes(tmp[1])
     return pr.group('num'),mt
@@ -84,19 +90,27 @@ class ReadMail(AbstractMailBox):
     idstr = b','.join(self.mid_list)
     prep = self.__fetcher(idstr)
     # remove non message entries from prep
-    self.messages = [x for x in prep if isinstance(x,tuple)]
-  def get_all(self):
+    self._messages = [x for x in prep if isinstance(x,tuple)]
+  def __subset(self,idxes):
+    ids = np.array(self.mid_list)[idxes]
+    idstr = b','.join(ids)
+    prep = self.__fetcher(idstr)
+    # remove non message entries from prep
+    self._messages = [x for x in prep if isinstance(x,tuple)]
+    
+  @property
+  def messages(self):
     '''
-    get_all
+    messages
     
     getter for messages
     
     :return: list of message tuples
     :rtype: list 
     '''
-    if not hasattr(self,'messages'):
+    if not hasattr(self,'_messages'):
       self.__full_pull()
-    return self.messages
+    return self._messages
   @property
   def MessageContainer(self):
     '''
@@ -115,7 +129,6 @@ class ReadMail(AbstractMailBox):
     '''get_by_uid'''
     idx = self.mid_list.index(toget)
     num,mess = self[idx]
-    #self.mess = email.message_from_bytes(data[0][1])
     return num,mess
 
   def get_latest_raw(self):

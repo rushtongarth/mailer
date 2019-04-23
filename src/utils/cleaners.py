@@ -21,17 +21,19 @@ class Cleanup(object):
       engine = sql.create_engine(self.dbp)
       self.ses  = sqlorm.sessionmaker(bind=engine)()
   def get_uniq(self):
+    
     C = np.empty(len(self.digested),dtype=tuple)
     for e,digs in enumerate(self.digested):
       sc = SingleCleanup(digs,self.p1,self.p2)
       mgdups, dbdups, ebase = sc.dedup_ebase()
       C[e] = ebase
+    
     return C
 
-# bundle into class
+
 class SingleCleanup(object):
   '''
-  perform clean up on input daily digest
+  Perform clean up on input daily digest
   clean up consists of 
   
   1. deduping within a single digest
@@ -92,7 +94,11 @@ class SingleCleanup(object):
     self.dup_vals = vals[c > 1]
     self.dup_idx  = np.array([x for x in loc]).squeeze().astype(int)
   def sha_comp(self):
-    ''' '''
+    '''get db shas and message shas, then compare sha vals
+    
+    :returns: indices of duplicate shas and array of uniq articles
+    :rtype: :class:`numpy.ndarray`
+    '''
     # recalc index
     idx_arts = np.arange(self._arts.shape[0])
     # get db shas and message shas, then compare sha vals
