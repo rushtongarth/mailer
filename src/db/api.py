@@ -36,7 +36,7 @@ class dbapi(object):
 
   def as_df(self,*args):
     query = self.get_cols(*args)
-    return pd.read_sql(query.statement,q.session.bind)
+    return pd.read_sql(query.statement,query.session.bind)
   @property
   def abstracts(self):
     ordering = self.attr(self.get_order())
