@@ -8,27 +8,6 @@ from src.db.api import dbapi
 from src.db.schema import EmailBase, ArticleBase
 
 
-
-class Cleanup(object):
-  def __init__(self,digests,db_dir=None,db_file=None,session=None):
-    self.digested = digests
-    if session:
-      self.ses = session
-    else:
-      self.dbp = 'sqlite:///'
-      self.dbp+= os.path.join(db_dir,db_file)
-      engine = sql.create_engine(self.dbp)
-      self.ses  = sqlorm.sessionmaker(bind=engine)()
-  def get_uniq(self):
-    
-    C = np.empty(len(self.digested),dtype=EmailBase)
-    for e,digs in enumerate(self.digested):
-      sc = SingleCleanup(digs,self.p1,self.p2)
-      mgdups, dbdups, ebase = sc.dedup_ebase()
-      C[e] = sc.ebase
-    return C
-
-
 class SingleCleanup(object):
   '''
   Perform clean up on input daily digest
