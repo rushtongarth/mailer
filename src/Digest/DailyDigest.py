@@ -125,7 +125,11 @@ class DailyDigest(object):
     cast = obj.astype(datetime.datetime)
     return cast.strftime("%Y-%m-%d")
   def body_clean(self,text):
-    tmp = '. '.join(text)
+    if isinstance(text,(list,tuple,np.ndarray)):
+      proc = text
+    else:
+      proc = [text]
+    tmp = '. '.join(proc)
     no_punct = ''.join(map(lambda X: ' ' if X in punct else X,tmp))
     return no_punct.upper()
   def as_dblist(self):
