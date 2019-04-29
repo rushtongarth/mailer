@@ -9,12 +9,13 @@ class DataFrameDataset(torchtext.data.Dataset):
     """
     Create a dataset from a pandas dataframe of examples and Fields
     Arguments:
-      examples pd.DataFrame: DataFrame of examples
-        fields {str: Field}: The Fields to use in this tuple. The
-          string is a field name, and the Field is the associated field.
-        filter_pred (callable or None): use only exanples for which
-          filter_pred(example) is true, or use all examples if None.
-          Default is None
+    
+    :param examples: DataFrame of examples
+    :type examples: :class:`pandas.DataFrame`
+    :param fields: Fields to use, where keys are field names, and values are the associated fields.
+    :type fields: dict
+    :param filter_pred: use only exanples for which filter_pred(example) is true, or use all examples if None.
+    :type filter_pred: (callable or None)
     """
     self.examples = examples.apply(SeriesExample.fromSeries, args=(fields,), axis=1).tolist()
     if filter_pred is not None:
