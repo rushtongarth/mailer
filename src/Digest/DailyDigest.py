@@ -126,8 +126,8 @@ class DailyDigest(object):
     return cast.strftime("%Y-%m-%d")
   def body_clean(self,text):
     tmp = '. '.join(text)
-    npt = ''.join(map(lambda X: ' ' if X in punct else X,tmp))
-    return npt.upper()
+    no_punct = ''.join(map(lambda X: ' ' if X in punct else X,tmp))
+    return no_punct.upper()
   def as_dblist(self):
     dict_arr = np.empty(self.records.shape,dtype=ArticleBase)
     ebase = EmailBase(**{
@@ -138,7 +138,7 @@ class DailyDigest(object):
       data = {
         'shakey'   : el['shakey'],
         'date'     : self.dateprep(el['date_art']),
-        'title'    : el['title'],
+        'title'    : self.body_clean(el['title']),
         'pri_cats' : ','.join(el['pri_cats']),
         'all_cats' : ','.join(el['all_cats']),
         'body'     : self.body_clean(el['body']),
