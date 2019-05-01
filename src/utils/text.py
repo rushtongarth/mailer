@@ -14,6 +14,9 @@ else:
   DEVICE = torch.device('cpu')
 
 class BatchTuple(object):
+  '''
+  
+  '''
   def __init__(self, dataset, x_var, y_var):
     self.dataset, self.x_var, self.y_var = dataset, x_var, y_var
   def __iter__(self):
@@ -23,8 +26,6 @@ class BatchTuple(object):
       yield (x, y)
   def __len__(self):
     return len(self.dataset)
-
-
 
 class Preprocess(object):
   '''
@@ -48,14 +49,16 @@ class Preprocess(object):
       'init_token':'<s>',
       'eos_token':'</s>'
     }
+    sp_ratio = [.7,.1,.2]
+    batch_sz = (16, 256, 256)
     self.TEXT = torchtext.data.Field(**fld)
-    self.F = {'body':TEXT,'title':TEXT}
+    F = {'body':TEXT,'title':TEXT}
     self.ds = DataFrameDataset(self.data,F)
-    train,testing,valid = df_as_ds.split(split_ratio=[.7,.1,.2])
+    train,testing,valid = self.ds.split(split_ratio=sp_ratio)
     self.TEXT.build_vocab(train)
     train_iter,test_iter,valid_iter = torchtext.data.Iterator.splits(
       (train,testing,valid),
-      batch_sizes=(16, 256, 256),
+      batch_sizes=batch_sz,
       sort_key=lambda X: len(X.body),
       device=DEVICE,
       shuffle=True,
@@ -63,16 +66,10 @@ class Preprocess(object):
       repeat=False
     )
     train_iter_tuple = BatchTuple(train_iter, "body", "title")
-    test_iter_tuple = BatchTuple(val_iter, "body", "title")
+    test_iter_tuple = BatchTuple(test_iter, "body", "title")
     val_iter_tuple = BatchTuple(val_iter, "body", "title")
  
-  def prep(self,df_as_ds):
     
     
-    train_iter,test_iter, val_iter = data.BucketIterator.splits(
-      (trn,test, vld), batch_sizes=(batch_size, int(batch_size*1.6)),
-      device=(0 if USE_GPU else -1), 
-      sort_key=lambda x: len(x.source),
-      shuffle=True, sort_within_batch=False, repeat=False
-    )
+
 
