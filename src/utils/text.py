@@ -36,38 +36,36 @@ class Preprocess(object):
   '''
   def __init__(self,session,**kwargs):
     self.api  = dbapi(session)
-    self.cols = kwargs.get('cols',['body','title'])
+    self.cols = kwargs.get('columns',['body','title'])
     self.case = kwargs.get('case','lower')
+    self.sp_r = kwargs.get('split_ratio',[.7,.1,.2])
+    self.b_sz = kwargs.get('batch_sizes',(16, 256, 256))
     # internal parms
-    data = self.api.as_df(*self.cols)
-    self.data = data.reindex(self.cols,axis=1)
-  
-  def __dataset(self):
+    self.data = self.api.as_df(*self.cols).reindex(self.cols,axis=1)
     fld = {
       'tokenize':lambda X: X.split(),
-      'lower':True,
-      'init_token':'<s>',
-      'eos_token':'</s>'
+      'lower':True,'init_token':'<s>','eos_token':'</s>'
     }
-    sp_ratio = [.7,.1,.2]
-    batch_sz = (16, 256, 256)
     self.TEXT = torchtext.data.Field(**fld)
     F = {'body':TEXT,'title':TEXT}
     self.ds = DataFrameDataset(self.data,F)
-    train,testing,valid = self.ds.split(split_ratio=sp_ratio)
+
+  def batch_tuples(self):
+    '''
+    returns list of batch tuples for train,test,validation
+    in that order
+    '''
+    train,testing,valid = self.ds.split(split_ratio=self.sp_r)
     self.TEXT.build_vocab(train)
-    train_iter,test_iter,valid_iter = torchtext.data.Iterator.splits(
+    tr_it,te_it,vd_it = torchtext.data.Iterator.splits(
       (train,testing,valid),
-      batch_sizes=batch_sz,
+      batch_sizes=self.b_sz,
       sort_key=lambda X: len(X.body),
       device=DEVICE,
-      shuffle=True,
-      sort_within_batch=False,
-      repeat=False
+      shuffle=True, sort_within_batch=False, repeat=False
     )
-    train_iter_tuple = BatchTuple(train_iter, "body", "title")
-    test_iter_tuple = BatchTuple(test_iter, "body", "title")
-    val_iter_tuple = BatchTuple(val_iter, "body", "title")
+    return [BatchTuple(x, "body", "title") for x in [tr_it,te_it,vd_it]]
+    
  
     
     
