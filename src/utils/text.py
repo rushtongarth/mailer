@@ -13,7 +13,7 @@ if torch.cuda.is_available():
 else:
   DEVICE = torch.device('cpu')
 
-class BatchTuple(object):
+class Batched(object):
   '''
   
   '''
@@ -37,14 +37,15 @@ class Preprocess(object):
   def __init__(self,session,**kwargs):
     self.api  = dbapi(session)
     self.cols = kwargs.get('columns',['body','title'])
-    self.case = kwargs.get('case','lower')
+    _case = kwargs.get('case','lower')
+    case = True if _case=='lower' else False
     self.sp_r = kwargs.get('split_ratio',[.7,.1,.2])
     self.b_sz = kwargs.get('batch_sizes',(16, 256, 256))
     # internal parms
     self.data = self.api.as_df(*self.cols).reindex(self.cols,axis=1)
     fld = {
-      'tokenize':lambda X: X.split(),
-      'lower':True,'init_token':'<s>','eos_token':'</s>'
+      'tokenize':lambda X: X.split(),'include_lengths':True,
+      'lower':case,'init_token':'<s>','eos_token':'</s>'
     }
     self.TEXT = torchtext.data.Field(**fld)
     F = {'body':TEXT,'title':TEXT}
@@ -64,7 +65,7 @@ class Preprocess(object):
       device=DEVICE,
       shuffle=True, sort_within_batch=False, repeat=False
     )
-    return [BatchTuple(x, "body", "title") for x in [tr_it,te_it,vd_it]]
+    return [Batched(x, "body", "title") for x in [tr_it,te_it,vd_it]]
     
  
     
