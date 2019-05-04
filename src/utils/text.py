@@ -45,10 +45,12 @@ class Preprocess(object):
     self.data = self.api.as_df(*self.cols).reindex(self.cols,axis=1)
     fld = {
       'tokenize':lambda X: X.split(),'include_lengths':True,
-      'lower':case,'init_token':'<s>','eos_token':'</s>'
+      'batch_first':True, 'lower':case,'eos_token':'</s>',
+      'unk_token':'<unk>','pad_token':'<pad>'
     }
-    self.TEXT = torchtext.data.Field(**fld)
-    F = {'body':TEXT,'title':TEXT}
+    self.TEXT = torchtext.data.Field(init_token=None,**fld)
+    self.LABL = torchtext.data.Field(init_token='<s>',**fld)
+    F = {'body':TEXT,'title':LABL}
     self.ds = DataFrameDataset(self.data,F)
 
   def batch_tuples(self):
