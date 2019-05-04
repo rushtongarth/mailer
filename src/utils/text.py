@@ -13,26 +13,18 @@ if torch.cuda.is_available():
 else:
   DEVICE = torch.device('cpu')
 
-class Batched(object):
-  '''
-  
-  '''
-  def __init__(self, dataset, x_var, y_var):
-    self.dataset, self.x_var, self.y_var = dataset, x_var, y_var
-  def __iter__(self):
-    for batch in self.dataset:
-      x = getattr(batch, self.x_var) 
-      y = getattr(batch, self.y_var)                 
-      yield (x, y)
-  def __len__(self):
-    return len(self.dataset)
-
 class Preprocess(object):
   '''
   Process text data for model consumption
   
-  cols = ['body','title']
-  case='lower'
+  :param session: database session to use for API connection
+  :type session: :class:`sqlalchemy.orm.session`
+  :param columns: list of columns to consider
+  :type columns: List[str]
+  :param case: case conversion string
+  :param split_ratio: list of ratios to split the data
+  :param batch_sizes: batch sizes for data
+  
   '''
   def __init__(self,session,**kwargs):
     self.api  = dbapi(session)
@@ -44,33 +36,49 @@ class Preprocess(object):
     # internal parms
     self.data = self.api.as_df(*self.cols).reindex(self.cols,axis=1)
     fld = {
-      'tokenize':lambda X: X.split(),'include_lengths':True,
-      'batch_first':True, 'lower':case,'eos_token':'</s>',
-      'unk_token':'<unk>','pad_token':'<pad>'
+      'tokenize':lambda X: X.split(),
+      'include_lengths':True, 'batch_first':True,
+      'lower':case, 'eos_token':'</s>',
+      'unk_token':'<unk>', 'pad_token':'<pad>'
     }
     self.TEXT = torchtext.data.Field(init_token=None,**fld)
     self.LABL = torchtext.data.Field(init_token='<s>',**fld)
-    F = {'body':TEXT,'title':LABL}
-    self.ds = DataFrameDataset(self.data,F)
+  @property
+  def dataset(self):
+    if hasattr(self,'__ds'):
+      return self.__ds
+    for c in self.data:
+      tmp = getattr(self.data,c)
+      tmp.update(tmp.str.replace('\s{2,}',' '))
+    # 
+    F = {'body': self.TEXT, 'title': self.LABL}
+    self.__ds = DataFrameDataset(self.data,F)
+    return self.__ds
+    
 
-  def batch_tuples(self):
+  def prep(self):
     '''
     returns list of batch tuples for train,test,validation
     in that order
     '''
-    train,testing,valid = self.ds.split(split_ratio=self.sp_r)
-    self.TEXT.build_vocab(train)
+    train,test,valid = self.dataset.split(split_ratio=self.sp_r)
+    self.TEXT.build_vocab(train.body)
+    self.LABL.build_vocab(train.title)
     tr_it,te_it,vd_it = torchtext.data.Iterator.splits(
-      (train,testing,valid),
+      (train,test,valid),
       batch_sizes=self.b_sz,
       sort_key=lambda X: len(X.body),
       device=DEVICE,
       shuffle=True, sort_within_batch=False, repeat=False
     )
-    return [Batched(x, "body", "title") for x in [tr_it,te_it,vd_it]]
-    
- 
-    
-    
+    #return [Batched(x, "body", "title") for x in [tr_it,te_it,vd_it]]
+    return tr_it,te_it,vd_it
+#
+
+
+
+
+
+
 
 
