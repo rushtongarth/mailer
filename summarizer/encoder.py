@@ -1,4 +1,4 @@
-import torch
+from . import torch
 
 class Encoder(torch.nn.Module):
   
