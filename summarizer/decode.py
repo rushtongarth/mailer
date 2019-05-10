@@ -9,7 +9,7 @@ class PointerAttention(torch.nn.Module):
   :param min_length:
   '''
   def __init__(self, input_size, hidden_size, vocab_size, wordEmbed, min_length=40):
-    super(PointerAttentionDecoder, self).__init__()
+    super(PointerAttention, self).__init__()
     self.input_size  = input_size
     self.hidden_size = hidden_size
     self.vocab_size  = vocab_size
@@ -30,3 +30,4 @@ class PointerAttention(torch.nn.Module):
     self.min_length = min_length
   def forward(self, fwd_val, bkd_val):
     pass
+#
