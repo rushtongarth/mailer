@@ -18,7 +18,7 @@ class Encoder(torch.nn.Module):
         self.out_cval = torch.nn.Linear(2 * self.hidden_size, self.hidden_size)
         self.out_hval = torch.nn.Linear(2 * self.hidden_size, self.hidden_size)
 
-    def forward(self, in_seqs, in_lens, hidden=None
+    def forward(self, in_seqs, in_lens, hidden=None):
         embed = self.embedding(in_seqs)
         # Pack padded batch of sequences for RNN module
         packed = torch.nn.utils.rnn.pack_padded_sequence(
