@@ -30,7 +30,7 @@ class Encoder(torch.nn.Module):
         )
         # e_out dim = bs, n_seq, 2*n_hid
         e_out = e_out.contiguous()
-        # shape of e_h: 2, bs, n_hid
+        # e_hid dim = 2, bs, n_hid
         h, c = e_hid
         # bs, 2*n_hid
         h = torch.cat(list(h), dim=1)
