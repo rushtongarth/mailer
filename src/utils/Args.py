@@ -6,6 +6,12 @@ parser = argparse.ArgumentParser(
   description='Read emails convert them to digestible html format'
 )
 parser.add_argument(
+  '--pagebuild','-p',
+  action='store_true',
+  help='build webpage'
+)
+
+parser.add_argument(
   '--test','-t',
   action='store_true',
   help='enable testing mode'
