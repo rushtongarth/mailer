@@ -10,6 +10,11 @@ parser.add_argument(
   action='store_true',
   help='build webpage'
 )
+parser.add_argument(
+  '--allbuild','-a',
+  action='store_true',
+  help='build webpage and send email'
+)
 
 parser.add_argument(
   '--test','-t',
