@@ -2,6 +2,8 @@
 ---
 Basic mailbox opener for digesting long emails and peeling out the most important information.
 
+this is changing soon...
+
 ### Current Digest System
 ---
 To run the code one needs to execute the following:
