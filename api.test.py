@@ -1,21 +1,35 @@
 from googleapiclient.discovery import build
 import pickle as pkl
 
-def ListMessagesMatchingQuery(cred_file,qstr="no-reply@arxiv.org"):
-    
-    with open(cred_file,'r') as cf:
-        creds = pkl.load(cf)
-    
-    service = build('gmail', 'v1', credentials=creds)
-    M = service.users().messages()
-    L = m.list(userId="me",q=qstr).execute()
-    
-    messages = []
-    if 'messages' in L:
-      messages.extend(L['messages'])
-    while 'nextPageToken' in L:
-      page_token = L['nextPageToken']
-      response = service.users().messages().list(userId=user_id, q=query, pageToken=page_token).execute()
-      messages.extend(response['messages'])
 
-    return messages
+class MessageListing(object):
+    
+    def __init__(self,credentials,query="from:no-reply@arxiv.org"):
+        self.qstr = query
+        self.service = build(
+            'gmail','v1',credentials=credentials
+        )
+        self.msgs = self.service.users().messages()
+        #self.msgs = msgs.list(userId="me",q=query).execute()
+
+    @property
+    def messages(self):
+        if hasattr(self,'mlist'):
+            return self.mlist
+        self.mlist = []
+        _msgs = self.msgs.list(userId="me",q=self.query)
+        msgs = _msgs.execute()
+        if 'messages' in msgs:
+            self.mlist.extend(msgs['messages'])
+        kw = dict(
+            userId="me",
+            q=self.qstr
+        )
+        while 'nextPageToken' in msgs:
+            kw['pageToken'] = msgs['nextPageToken']
+            msgs = self.msgs.list(**kw).execute()
+            self.mlist.extend(msgs['messages'])
+        return self.mlist
+
+
+
