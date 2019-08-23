@@ -1,6 +1,7 @@
 from googleapiclient.discovery import build
 import pickle as pkl
-
+import operator as op
+import numpy as np
 
 class MessageListing(object):
     
@@ -10,25 +11,26 @@ class MessageListing(object):
             'gmail','v1',credentials=credentials
         )
         self.msgs = self.service.users().messages()
-        #self.msgs = msgs.list(userId="me",q=query).execute()
 
     @property
     def messages(self):
         if hasattr(self,'mlist'):
             return self.mlist
-        self.mlist = []
-        _msgs = self.msgs.list(userId="me",q=self.query)
-        msgs = _msgs.execute()
-        if 'messages' in msgs:
-            self.mlist.extend(msgs['messages'])
+        messages = []
         kw = dict(
             userId="me",
             q=self.qstr
         )
+        _msgs = self.msgs.list(**kw)
+        msgs = _msgs.execute()
+        if 'messages' in msgs:
+            messages.extend(msgs['messages'])
         while 'nextPageToken' in msgs:
             kw['pageToken'] = msgs['nextPageToken']
             msgs = self.msgs.list(**kw).execute()
-            self.mlist.extend(msgs['messages'])
+            messages.extend(msgs['messages'])
+        ids = map(op.itemgetter('id'),messages)
+        self.mlist = np.fromiter(ids,dtype=(str,16))
         return self.mlist
 
 
