@@ -17,10 +17,7 @@ class MessageListing(object):
         if hasattr(self,'mlist'):
             return self.mlist
         messages = []
-        kw = dict(
-            userId="me",
-            q=self.qstr
-        )
+        kw = dict( userId="me", q=self.qstr )
         _msgs = self.msgs.list(**kw)
         msgs = _msgs.execute()
         if 'messages' in msgs:
@@ -32,6 +29,14 @@ class MessageListing(object):
         ids = map(op.itemgetter('id'),messages)
         self.mlist = np.fromiter(ids,dtype=(str,16))
         return self.mlist
+    
+#class MessageReader(object):
+#    def __init__(self,credentials,query="from:no-reply@arxiv.org"):
 
 
-
+#import base64
+#import email
+#msg_str = base64.urlsafe_b64decode(mess['raw'].encode('ASCII'))
+#mime_msg = email.message_from_bytes(msg_str).as_string().splitlines()
+#X = np.where(np.char.startswith(email_arr,'arXiv'))[0]
+#sum(np.char.count(email_arr[slice(X[-1],-1)],'\\\\'))
