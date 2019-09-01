@@ -8,8 +8,6 @@ from email import message_from_bytes
 from googleapiclient.discovery import build
 import numpy as np
 
-
-
 class Message(object):
     __slots__ = ('ID','Date','Articles')
     
@@ -23,9 +21,9 @@ class Message(object):
                 message_obj['raw'].encode('ASCII')
             ))
         mess = np.array(mess.as_string().splitlines())
-        self._art(mess)
+        self._art_proc(mess)
         
-    def _art(self,mess):
+    def _art_proc(self,mess):
         _end = np.char.startswith(mess,'%%--%%--%%')
         _end = np.where(_end)[0]
         _art = np.char.startswith(mess,'arXiv:')
@@ -39,22 +37,22 @@ class Message(object):
             self.Articles[e] = np.array(
                 [i for i in mess[slice(*s)] if len(i)]
             )
-            
-        
 
 class MessageListing(object):
     
-    def __init__(self,credentials,query="from:no-reply@arxiv.org"):
-        self.qstr = query
+    def __init__(self,credentials,**kwargs):
+        qstr = " ".join([
+            "from:no-reply@arxiv.org",
+            "subject:(cs daily)",
+        ])
+        self.qstr = kwargs.get('query',qstr)
         self.user = "me"
         with open(credentials,'rb') as f:
             creds = pkl.load(f)
         self.service = build(
             'gmail','v1',credentials=creds
         )
-
         self.msgs = self.service.users().messages()
-    
     
     def __mids(self):
         """pull all message ids from email address"""
@@ -72,7 +70,16 @@ class MessageListing(object):
         self.mids = np.fromiter(ids,dtype=(str,16))
     def __len__(self):
         return self.message_ids.shape[0]
-    #def __getitem__(self,idx): to do...
+
+    def __getitem__(self,idx):
+        toget = self.message_ids[idx]
+        m = self.msgs.get(**dict(
+            id = toget,
+            userId = self.user,
+            format = 'raw',
+        )).execute()
+        return Message(m)
+        
     @property
     def message_ids(self):
         """list all message ids"""
@@ -80,15 +87,11 @@ class MessageListing(object):
             return self.mids
         self.__mids()
         return self.mids
+    #def messages(self):
+        #"""list all messages"""
+        #kw = dict(userId=self.user, format='raw')
+        #for _id in self.message_ids:
+            #mess = self.msgs.get(id=_id,**kw).execute()
+            #news = Message(mess)
     
-    def messages(self):
-        """list all messages"""
-        kw = dict(userId=self.user, format='raw')
-        for _id in self.message_ids:
-            mess = self.msgs.get(id=_id,**kw).execute()
-            news = Message(mess)
-        
-            
-            
-            
-
+#
