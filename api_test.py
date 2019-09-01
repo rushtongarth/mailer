@@ -1,9 +1,46 @@
-from googleapiclient.discovery import build
+import datetime
 import pickle as pkl
 import operator as op
-import numpy as np
+import collections as co
+
 from base64 import urlsafe_b64decode
 from email import message_from_bytes
+from googleapiclient.discovery import build
+import numpy as np
+
+
+
+class Message(object):
+    __slots__ = ('ID','Date','Articles')
+    
+    def __init__(self,message_obj):
+        self.ID = message_obj['id']
+        self.Date = datetime.datetime.fromtimestamp(
+            int(message_obj['internalDate'])/1000.0
+        )
+        mess = message_from_bytes(
+            urlsafe_b64decode(
+                message_obj['raw'].encode('ASCII')
+            ))
+        mess = np.array(mess.as_string().splitlines())
+        self._art(mess)
+        
+    def _art(self,mess):
+        _end = np.char.startswith(mess,'%%--%%--%%')
+        _end = np.where(_end)[0]
+        _art = np.char.startswith(mess,'arXiv:')
+        _art = np.where(_art)[0]
+        _art = _art[_art < _end[0]]
+        slices = np.vstack(
+            (_art,np.concatenate((_art[1:],_end)))
+        ).T
+        self.Articles = np.empty(slices.shape[0],dtype=object)
+        for e,s in enumerate(slices):
+            self.Articles[e] = np.array(
+                [i for i in mess[slice(*s)] if len(i)]
+            )
+            
+        
 
 class MessageListing(object):
     
@@ -33,10 +70,9 @@ class MessageListing(object):
             messages.extend(msgs['messages'])
         ids = map(op.itemgetter('id'),messages)
         self.mids = np.fromiter(ids,dtype=(str,16))
-    @staticmethod
-    def get_where(array,pattern):
-        return np.where(np.char.startswith(array,pattern))[0]
-
+    def __len__(self):
+        return self.message_ids.shape[0]
+    #def __getitem__(self,idx): to do...
     @property
     def message_ids(self):
         """list all message ids"""
@@ -44,37 +80,15 @@ class MessageListing(object):
             return self.mids
         self.__mids()
         return self.mids
+    
     def messages(self):
         """list all messages"""
         kw = dict(userId=self.user, format='raw')
-        pat1 = 'arXiv:'
-        pat2 = '%%--%%--%%'
         for _id in self.message_ids:
-            kw['id'] = _id
-            mess = self.msgs.get(**kw).execute()['raw'].encode('ASCII')
-            _obj = message_from_bytes(urlsafe_b64decode(mess))
-            _arr = _obj.as_string().splitlines()
-            _old = self.get_where(_arr,pat2)
-            _new = self.get_where(_arr,pat1)
-            _new = _new[_new < _old[0]]
-            col2 = np.concatenate((_new[1:],_old))
-            mmat = np.vstack((_new,col2)).T
+            mess = self.msgs.get(id=_id,**kw).execute()
+            news = Message(mess)
+        
+            
+            
             
 
-#class MessageReader(object):
-#    def __init__(self,credentials,query="from:no-reply@arxiv.org"):
-
-
-#from googleapiclient.discovery import build
-#import pickle as pkl, operator as op, numpy as np, base64, email
-
-#ML = MessageListing(c)
-#arr = ML.messages
-#mess = ML.msgs.get(userId='me',id=arr[0],format='raw').execute()
-#msg_str = base64.urlsafe_b64decode(mess['raw'].encode('ASCII'))
-#email_arr = email.message_from_bytes(msg_str).as_string().splitlines()
-#repeat_mark = np.where(np.char.startswith(email_arr,'%%--%%--%%'))[0]
-#X = np.where(np.char.startswith(email_arr,'arXiv:'))[0]
-#X1 = X[X<repeat_mark[0]]
-#Y = np.vstack((X1,np.concatenate((X1[1:],loc1)))).T
-#articles = [email_arr[slice(*row)] for row in Y]
