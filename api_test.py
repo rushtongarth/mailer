@@ -8,6 +8,49 @@ from email import message_from_bytes
 from googleapiclient.discovery import build
 import numpy as np
 
+class Article(object):
+    __slots__ = ('artid','title','authors','categories','link','body')
+    def __init__(self,art_obj,**patterns):
+        splitter = patterns.get('splitter','\\\\')
+        tpat = patterns.get('title','Title: ')
+        apat = patterns.get('authors','Authors: ')
+        cpat = patterns.get('categories','Categories: ')
+        
+        locs = np.where(np.char.find(art_obj,splitter)+1)[0]
+        head, body = np.split(art_obj,locs)[:2]
+        self.artid = head[0].split()[0]
+        self.__head(head, tpat, apat, cpat)
+        self.__categories(head, cpat)
+        self.__body(body)
+        
+    def __multirow(self,head,start_pattern,end_pattern):
+        _range = np.char.startswith(head,start_pattern)
+        _range |= np.char.startswith(head,end_pattern)
+        idx = np.where(_range)[0]
+        raw = head[slice(*idx)].copy()
+        raw[0] = raw[0][len(start_pattern):]
+        return np.char.strip(raw)
+
+    def __head(self, head, tpat, apat, cpat):
+        self.title = ' '.join(self.__multirow(head, tpat, apat))
+        astr = ' '.join(self.__multirow(head, apat, cpat))
+        astr = astr.replace(' and ',', ')
+        self.authors = np.array(astr.split(', '))
+        
+        lc = np.char.lower(self.artid.split(':'))
+        self.link = 'https://{0}.org/abs/{1}'.format(*lc)
+        
+    def __categories(self, head, cpat):
+        locs = np.char.startswith(head,cpat)
+        clist = head[locs].item()[len(cpat):].split()
+        self.categories = np.array(clist)
+
+    def __body(self, body):
+        onestr = ' '.join(np.char.strip(body[1:]))
+        sents = onestr.split('. ')
+        self.body = np.array(sents)
+
+#
 class Message(object):
     __slots__ = ('ID','Date','Articles')
     
@@ -22,7 +65,13 @@ class Message(object):
             ))
         mess = np.array(mess.as_string().splitlines())
         self._art_proc(mess)
-        
+    def __len__(self):
+        return self.Articles.shape[0]
+    def __repr__(self):
+        ostr = "<ID={0}|Date={1:%Y-%m-%d}|Articles={2}>"
+        return ostr.format(
+            self.ID, self.Date, self.Articles.shape[0]
+        )
     def _art_proc(self,mess):
         _end = np.char.startswith(mess,'%%--%%--%%')
         _end = np.where(_end)[0]
@@ -34,9 +83,10 @@ class Message(object):
         ).T
         self.Articles = np.empty(slices.shape[0],dtype=object)
         for e,s in enumerate(slices):
-            self.Articles[e] = np.array(
+            art = np.array(
                 [i for i in mess[slice(*s)] if len(i)]
             )
+            self.Articles[e] = Article(art)
 
 class MessageListing(object):
     
