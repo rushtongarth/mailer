@@ -22,7 +22,9 @@ class Article(object):
         self.__head(head, tpat, apat, cpat)
         self.__categories(head, cpat)
         self.__body(body)
-        
+    def __repr__(self):
+        ostr = "<id={0}|title={1}|categories={2}>"
+        return ostr.format(self.artid,self.title,','.join(self.categories))
     def __multirow(self,head,start_pattern,end_pattern):
         _range = np.char.startswith(head,start_pattern)
         _range |= np.char.startswith(head,end_pattern)
@@ -54,7 +56,9 @@ class Article(object):
 class Message(object):
     __slots__ = ('ID','Date','Articles')
     
-    def __init__(self,message_obj):
+    def __init__(self,message_obj,**patterns):
+        apos = patterns.get('article','arXiv:')
+        epos = patterns.get('end_posn','%%--%%--%%')
         self.ID = message_obj['id']
         self.Date = datetime.datetime.fromtimestamp(
             int(message_obj['internalDate'])/1000.0
@@ -64,7 +68,7 @@ class Message(object):
                 message_obj['raw'].encode('ASCII')
             ))
         mess = np.array(mess.as_string().splitlines())
-        self._art_proc(mess)
+        self._art_proc(mess,apos,epos)
     def __len__(self):
         return self.Articles.shape[0]
     def __repr__(self):
@@ -72,11 +76,9 @@ class Message(object):
         return ostr.format(
             self.ID, self.Date, self.Articles.shape[0]
         )
-    def _art_proc(self,mess):
-        _end = np.char.startswith(mess,'%%--%%--%%')
-        _end = np.where(_end)[0]
-        _art = np.char.startswith(mess,'arXiv:')
-        _art = np.where(_art)[0]
+    def _art_proc(self,mess,apos,epos):
+        _end = np.where(np.char.startswith(mess,epos))[0]
+        _art = np.where(np.char.startswith(mess,apos))[0]
         _art = _art[_art < _end[0]]
         slices = np.vstack(
             (_art,np.concatenate((_art[1:],_end)))
@@ -137,11 +139,19 @@ class MessageListing(object):
             return self.mids
         self.__mids()
         return self.mids
-    #def messages(self):
-        #"""list all messages"""
-        #kw = dict(userId=self.user, format='raw')
-        #for _id in self.message_ids:
-            #mess = self.msgs.get(id=_id,**kw).execute()
-            #news = Message(mess)
+#
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+ 
+ 
     
 #
