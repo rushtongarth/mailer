@@ -7,7 +7,7 @@ from base64 import urlsafe_b64decode
 from email import message_from_bytes
 from googleapiclient.discovery import build
 import numpy as np
-import collections as co
+import pandas as pd
 
 class Article(object):
     __slots__ = ('artid','title','authors','categories','link','body')
@@ -126,13 +126,15 @@ class MessageListing(object):
 
     def __getitem__(self,idx):
         toget = self.message_ids[idx]
-        if len(toget)>1:
-            kw = dict(userId = self.user,format = 'raw')
+        kw = dict(userId = self.user,format = 'raw')
+        if isinstance(toget,(list,tuple)) and len(toget)>1:
             m = np.array([
-                Message(self.msgs.get(id = m,**kw).execute()) for m in toget
+                Message(self.msgs.get(id = x,**kw).execute()) for x in toget
             ])
             return m
-        return Message(m)
+        else:
+            m = self.msgs.get(id = toget,**kw).execute()
+            return Message(m)
     def __repr__(self):
         ostr = "<message_ids={mid}|query={qstr}>"
         return ostr.format(
@@ -146,6 +148,12 @@ class MessageListing(object):
             return self.mids
         self.__mids()
         return self.mids
+    #def article_dataframe(self):
+        #attr = ['artid', 'authors', 'body', 'categories', 'link', 'title']
+        #data = [
+            #[getattr(x,y) for y in attr] for x in arr.Articles
+        #]
+        #return pd.DataFrame(arr.Articles,columns=attr)
 #
 
 
