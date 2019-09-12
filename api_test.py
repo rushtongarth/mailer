@@ -127,7 +127,7 @@ class MessageListing(object):
     def __getitem__(self,idx):
         toget = self.message_ids[idx]
         kw = dict(userId = self.user,format = 'raw')
-        if isinstance(toget,(list,tuple)) and len(toget)>1:
+        if isinstance(toget,np.ndarray) and len(toget)>1:
             m = np.array([
                 Message(self.msgs.get(id = x,**kw).execute()) for x in toget
             ])
