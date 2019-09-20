@@ -15,7 +15,7 @@ def message_df(idx = 0, credentials = 'creds.pkl'):
 def build_vocab(frame):
     d = dict.fromkeys(punctuation,' ')
     tr = str.maketrans(d)
-    text = frane.body.explode()
+    text = frame.body.explode()
     text = text.str.translate(tr)
     text = text.str.replace('\s+',' ',regex=True)
     text = text.str.lower()
