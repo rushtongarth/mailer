@@ -22,10 +22,10 @@ def build_vocab(frame):
     d = dict.fromkeys(p,' ')
     tr = str.maketrans(d)
     text = frame.body.explode()
-    text = text.str.translate(tr)
-    text = text.str.replace('\s+',' ',regex=True)
-    text = text.str.lower()
-    text = text.str.split().explode()
+    text = str_app(text,'translate',tr)
+    text = str_app(text,'replace','\s+',' ',regex=True)
+    text = str_app(text,'lower')
+    text = str_app(text,'split').explode()
     return text
 
 
