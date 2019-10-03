@@ -10,6 +10,16 @@ import numpy as np
 import pandas as pd
 
 class Article(object):
+    """Article loader
+    
+    Load and process articles has the following specific slots
+        artid, title, authors, categories, link, body
+    
+    Parameters
+    ----------
+        art_obj : article object
+        
+    """
     __slots__ = ('artid','title','authors','categories','link','body')
     def __init__(self,art_obj,**patterns):
         splitter = patterns.get('splitter','\\\\')

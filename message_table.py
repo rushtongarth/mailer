@@ -1,8 +1,11 @@
+import typing
 import operator as op
 import numpy as np
 import pandas as pd
 from api_test import Message, MessageListing, Article
 from string import punctuation as punct
+
+PandasDF = typing.TypeVar('pandas.core.frame.DataFrame')
 
 def message_df(idx = 0, credentials = 'creds.pkl'):
     ML = MessageListing(credentials)
