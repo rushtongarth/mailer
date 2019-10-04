@@ -21,6 +21,7 @@ class Article(object):
         
     """
     __slots__ = ('artid','title','authors','categories','link','body')
+    
     def __init__(self,art_obj,**patterns):
         splitter = patterns.get('splitter','\\\\')
         tpat = patterns.get('title','Title: ')
@@ -33,9 +34,11 @@ class Article(object):
         self.__head(head, tpat, apat, cpat)
         self.__categories(head, cpat)
         self.__body(body)
+
     def __repr__(self):
         ostr = "<id={0}|title={1}|categories={2}>"
         return ostr.format(self.artid,self.title,','.join(self.categories))
+
     def __multirow(self,head,start_pattern,end_pattern):
         _range = np.char.startswith(head,start_pattern)
         _range |= np.char.startswith(head,end_pattern)
@@ -65,6 +68,10 @@ class Article(object):
 
 #
 class Message(object):
+    """Message object
+    
+    Parse messages from email
+    """
     __slots__ = ('ID','Date','Articles')
     
     def __init__(self,message_obj,**patterns):
@@ -80,13 +87,16 @@ class Message(object):
             ))
         mess = np.array(mess.as_string().splitlines())
         self._art_proc(mess,apos,epos)
+
     def __len__(self):
         return self.Articles.shape[0]
+
     def __repr__(self):
         ostr = "<ID={0}|Date={1:%Y-%m-%d}|Articles={2}>"
         return ostr.format(
             self.ID, self.Date, self.Articles.shape[0]
         )
+
     def _art_proc(self,mess,apos,epos):
         _end = np.where(np.char.startswith(mess,epos))[0]
         _art = np.where(np.char.startswith(mess,apos))[0]
@@ -102,7 +112,11 @@ class Message(object):
             self.Articles[e] = Article(art)
 
 class MessageListing(object):
+    """Message listing class 
     
+    This class is designed to act as a container for messages 
+    coming out of an inbox.  
+    """
     def __init__(self,credentials,**kwargs):
         qstr = " ".join([
             "from:no-reply@arxiv.org",
@@ -131,6 +145,7 @@ class MessageListing(object):
             messages.extend(msgs['messages'])
         ids = map(op.itemgetter('id'),messages)
         self.mids = np.fromiter(ids,dtype=(str,16))
+
     def __len__(self):
         return self.message_ids.shape[0]
 
@@ -145,12 +160,14 @@ class MessageListing(object):
         else:
             m = self.msgs.get(id = toget,**kw).execute()
             return Message(m)
+
     def __repr__(self):
         ostr = "<message_ids={mid}|query={qstr}>"
         return ostr.format(
             mid = self.message_ids.shape[0],
             qstr = self.qstr
         )
+
     @property
     def message_ids(self):
         """list all message ids"""
