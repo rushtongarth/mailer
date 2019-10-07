@@ -37,13 +37,23 @@ class Article(object):
 
     def __repr__(self):
         ostr = "<id={0}|title={1}|categories={2}>"
-        return ostr.format(self.artid,self.title,','.join(self.categories))
+        return ostr.format(
+            self.artid, self.title, ','.join(self.categories)
+        )
 
-    def __multirow(self,head,start_pattern,end_pattern):
-        _range = np.char.startswith(head,start_pattern)
-        _range |= np.char.startswith(head,end_pattern)
+    def __multirow(self, head, start_pattern, end_pattern):
+        _range = np.char.startswith(head, start_pattern)
+        _range |= np.char.startswith(head, end_pattern)
         idx = np.where(_range)[0]
-        raw = head[slice(*idx)].copy()
+        try:
+            raw = head[slice(*idx)].copy()
+        except Exception as E:
+            print(np.char.startswith(head, start_pattern))
+            print(np.char.startswith(head, end_pattern))
+            print(head)
+            print(idx)
+            raise E
+        
         raw[0] = raw[0][len(start_pattern):]
         return np.char.strip(raw)
 
@@ -57,7 +67,7 @@ class Article(object):
         self.link = 'https://{0}.org/abs/{1}'.format(*lc)
         
     def __categories(self, head, cpat):
-        locs = np.char.startswith(head,cpat)
+        locs = np.char.startswith(head, cpat)
         clist = head[locs].item()[len(cpat):].split()
         self.categories = np.array(clist)
 
