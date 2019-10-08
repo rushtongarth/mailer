@@ -27,8 +27,11 @@ class Article(object):
         tpat = patterns.get('title','Title: ')
         apat = patterns.get('authors','Authors: ')
         cpat = patterns.get('categories','Categories: ')
-        
-        locs = np.where(np.char.find(art_obj,splitter)+1)[0]
+        # Need to add a startswith statement to finding
+        #  the location of the splitter pattern
+        found = np.char.find(art_obj,splitter)+1
+        locs = np.where(found)[0]
+        #
         head, body = np.split(art_obj,locs)[:2]
         self.artid = head[0].split()[0]
         self.__head(head, tpat, apat, cpat)
