@@ -17,8 +17,19 @@ class Article(object):
     
     Parameters
     ----------
-        art_obj : article object
-        
+        art_obj : 
+            article object
+
+    Other Parameters
+    ----------------
+        splitter : `str`
+            pattern to split on
+        title : `str`
+            title pattern
+        authors : `str`
+            author pattern
+        categories : `str`
+            category pattern
     """
     __slots__ = ('artid','title','authors','categories','link','body')
     
@@ -27,11 +38,11 @@ class Article(object):
         tpat = patterns.get('title','Title: ')
         apat = patterns.get('authors','Authors: ')
         cpat = patterns.get('categories','Categories: ')
-        # Need to add a startswith statement to finding
-        #  the location of the splitter pattern
+
         found = np.char.find(art_obj,splitter)+1
-        locs = np.where(found)[0]
-        #
+        # Added equal one to avoid false matches
+        locs = np.where(found == 1)[0]
+
         head, body = np.split(art_obj,locs)[:2]
         self.artid = head[0].split()[0]
         self.__head(head, tpat, apat, cpat)
@@ -48,15 +59,6 @@ class Article(object):
         _range = np.char.startswith(head, start_pattern)
         _range |= np.char.startswith(head, end_pattern)
         idx = np.where(_range)[0]
-        try:
-            raw = head[slice(*idx)].copy()
-        except Exception as E:
-            print(np.char.startswith(head, start_pattern))
-            print(np.char.startswith(head, end_pattern))
-            print(head)
-            print(idx)
-            raise E
-        
         raw[0] = raw[0][len(start_pattern):]
         return np.char.strip(raw)
 
@@ -83,7 +85,11 @@ class Article(object):
 class Message(object):
     """Message object
     
-    Parse messages from email
+    Parse articles from an email
+    
+    Parameters
+    ----------
+        message_obj :
     """
     __slots__ = ('ID','Date','Articles')
     
