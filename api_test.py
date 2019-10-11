@@ -20,16 +20,16 @@ class Article(object):
         art_obj : 
             article object
 
-    Other Parameters
+    Other Parameters
     ----------------
-        splitter : `str`
-            pattern to split on
-        title : `str`
-            title pattern
-        authors : `str`
-            author pattern
-        categories : `str`
-            category pattern
+        splitter : `str`, optional
+            pattern on which to split. Default ``'\\\\'``
+        title : `str`, optional
+            title pattern.  Default ``'Title: '``
+        authors : `str`, optional
+            author pattern.  Default ``'Authors: '``
+        categories : `str`, optional
+            category pattern.  Default ``'Categories: '``
     """
     __slots__ = ('artid','title','authors','categories','link','body')
     
@@ -48,6 +48,7 @@ class Article(object):
         self.__head(head, tpat, apat, cpat)
         self.__categories(head, cpat)
         self.__body(body)
+        
 
     def __repr__(self):
         ostr = "<id={0}|title={1}|categories={2}>"
@@ -59,6 +60,7 @@ class Article(object):
         _range = np.char.startswith(head, start_pattern)
         _range |= np.char.startswith(head, end_pattern)
         idx = np.where(_range)[0]
+        raw = head[slice(*idx)].copy()
         raw[0] = raw[0][len(start_pattern):]
         return np.char.strip(raw)
 
@@ -78,8 +80,9 @@ class Article(object):
 
     def __body(self, body):
         onestr = ' '.join(np.char.strip(body[1:]))
-        sents = onestr.split('. ')
-        self.body = np.array(sents)
+        #sents = onestr.split('. ')
+        #self.body = np.array(sents)
+        self.body = onestr
 
 #
 class Message(object):
@@ -90,6 +93,14 @@ class Message(object):
     Parameters
     ----------
         message_obj :
+
+    Other Parameters
+    ----------------
+        article : `str`, optional
+            pattern on which to split. Default ``'arXiv:'``
+        end_posn : `str`, optional
+            end pattern.  Default ``'%%--%%--%%'``
+
     """
     __slots__ = ('ID','Date','Articles')
     
@@ -125,9 +136,7 @@ class Message(object):
         ).T
         self.Articles = np.empty(slices.shape[0],dtype=object)
         for e,s in enumerate(slices):
-            art = np.array(
-                [i for i in mess[slice(*s)] if len(i)]
-            )
+            art = np.array([i for i in mess[slice(*s)] if len(i)])
             self.Articles[e] = Article(art)
 
 class MessageListing(object):
