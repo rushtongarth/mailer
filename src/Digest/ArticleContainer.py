@@ -11,6 +11,7 @@ dsk = re.compile(
     )
 
 class ArXivArticle(object):
+    """Arxive Article container"""
     
     def __init__(self,text_arr,user_subs): 
         self.raw = text_arr
