@@ -113,10 +113,10 @@ class DailyDigest(object):
             _, _, locs = np.intersect1d(
                 rw, subs[:, 0], return_indices=True
             )
-        long_cat = ', '.join(subs[locs, 1])
-        curr_ix = np.where(idx == e)
-        rec_slc = self.records[flds][curr_ix]
-        self._grouping.append((long_cat, rec_slc))
+            long_cat = ', '.join(subs[locs, 1])
+            curr_ix = np.where(idx == e)
+            rec_slc = self.records[flds][curr_ix]
+            self._grouping.append((long_cat, rec_slc))
 
     def as_recarr(self):
         return self.records.view(np.recarray)
