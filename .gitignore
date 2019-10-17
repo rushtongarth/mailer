@@ -89,3 +89,5 @@ venv.bak/
 *.pkl
 # Disable pushing swap files
 *.kate-swp
+# Ignore kateproject file
+*.kateproject
