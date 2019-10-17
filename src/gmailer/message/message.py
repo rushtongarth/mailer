@@ -2,6 +2,7 @@ import datetime
 from base64 import urlsafe_b64decode
 from email import message_from_bytes
 import numpy as np
+from ..article.article import Article
 
 
 class Message(object):

@@ -1,6 +1,8 @@
 import pickle as pkl
 import operator as op
 import numpy as np
+from googleapiclient.discovery import build
+from ..message.message import Message
 
 
 class MessageListing(object):

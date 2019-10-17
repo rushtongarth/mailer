@@ -1,5 +1,7 @@
 import numpy as np
 
+
+
 class Article(object):
 
     """Article loader
