@@ -33,9 +33,8 @@ class Message(object):
             int(message_obj['internalDate'])/1000.0
         )
         mess = message_from_bytes(
-            urlsafe_b64decode(
-                message_obj['raw'].encode('ASCII')
-            ))
+            urlsafe_b64decode(message_obj['raw'].encode('ASCII'))
+        )
         mess = np.array(mess.as_string().splitlines())
         self._art_proc(mess, apos, epos)
 
