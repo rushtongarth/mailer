@@ -15,7 +15,7 @@ def mailprep(digest):
     return grouped
 
 
-def send_mailz(mail_obj, send_from, send_to, cc_to, test=False):
+def send_mailz(mail_obj, send_from, send_to, cc_to=None, test=False):
     mail_obj.set_sender(send_from)
     mail_obj.set_to(send_to)
     if not test:
