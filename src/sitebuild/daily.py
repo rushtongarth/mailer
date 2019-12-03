@@ -20,6 +20,20 @@ class DailyBuild(object):
         self.dow = self._date.weekday()
         self.dow_verbose = self.day[self.dow]
         self.__config_load(config)
+        self.status = self.keytest()
+
+    def keytest(self):
+        p = dict(
+            action='keyverify',
+            username=self.payload['site'],
+            key=self.payload['key'],
+        )
+        self._status_obj = requests.post(self.url, data=p).json()
+        status = sum(self._status_obj.values())
+        if status != 0:
+            return False
+        else:
+            return True
 
     def __config_load(self, config):
         self.url = config.get('app_page', 'apiurl')
@@ -29,6 +43,9 @@ class DailyBuild(object):
         }
 
     def deploy(self, to_load):
+        if not self.status:
+            print("ERROR!")
+            pprint.pprint(self._status_obj, width=40, indent=2)
         payload = dict(
             action='deploy',
             resource='{}.html'.format(self.dow_verbose),
@@ -42,3 +59,8 @@ class DailyBuild(object):
         else:
             pprint.pprint(obj, width=40, indent=2)
         return obj
+
+
+
+
+#
