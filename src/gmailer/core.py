@@ -1,22 +1,9 @@
 from .listing.listing import MessageListing
+from string import punctuation as punct
 import pandas as pd
 import operator as op
 
 
-#class api(object):
-    #"""
-    #"""
-    
-    #def __init__(self,creds):
-        #self.mlist = MessageListing(creds)
-
-    #def __len__(self):
-        #return len(self.mlisting)
-    
-    #def __iter__(self):
-        #for i in range(len(self)):
-            
-            #yield self.mlisting[i]
 
 def get_authors(listing_obj, idx=0):
     D = co.defaultdict(set)
@@ -43,14 +30,17 @@ def str_app(series, func, *args, **kwargs):
     return s2(*args, **kwargs)
 
 
-def build_vocab(frame):
+def build_vocab(frame, col="body"):
     p = punct.replace('.', '')
     d = dict.fromkeys(p, ' ')
     tr = str.maketrans(d)
-    text = frame.body.explode()
+    text = getattr(frame,col)
     text = str_app(text, 'translate', tr)
     text = str_app(text, 'replace', '\s+', ' ', regex=True)
     text = str_app(text, 'lower')
     text = str_app(text, 'split').explode()
     return text
 
+
+
+#
