@@ -6,6 +6,12 @@ from datetime import date
 class DailyBuild(object):
     '''daily site builder
     '''
+    
+    KEY_ERRORS = [
+        'USERNAME_MISSING',
+        'KEY_MISSING',
+        'KEY_INCORRECT'
+    ]
 
     day = {
         0: 'monday',
@@ -29,8 +35,8 @@ class DailyBuild(object):
             key=self.payload['key'],
         )
         self._status_obj = requests.post(self.url, data=p).json()
-        status = sum(self._status_obj.values())
-        if status != 0:
+        
+        if self._status_obj['error'] in self.KEY_ERRORS:
             return False
         else:
             return True

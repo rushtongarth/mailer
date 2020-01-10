@@ -1,6 +1,7 @@
 from .listing.listing import MessageListing
 from string import punctuation as punct
 import pandas as pd
+import collections as co
 import operator as op
 
 
@@ -11,7 +12,6 @@ def get_authors(listing_obj, idx=0):
     for x in arts:
         for y in x.authors:
             D[y] |= set(x.authors) - set([y])
-
     return D
 
 

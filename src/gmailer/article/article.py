@@ -61,7 +61,10 @@ class Article(object):
         self.title = ' '.join(self.__multirow(head, tpat, apat))
         astr = ' '.join(self.__multirow(head, apat, cpat))
         astr = astr.replace(' and ', ', ')
+        # needs update from article 2001.02960
+        # account for multiple splits per author
         self.authors = np.array(astr.split(', '))
+        
         lc = np.char.lower(self.artid.split(':'))
         self.link = 'https://{0}.org/abs/{1}'.format(*lc)
 
