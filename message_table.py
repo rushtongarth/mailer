@@ -1,10 +1,11 @@
 import typing
 import operator as op
 import collections as co
+from string import punctuation as punct
 
 import pandas as pd
 from api_test import MessageListing
-from string import punctuation as punct
+
 
 PandasDF = typing.TypeVar('pandas.core.frame.DataFrame')
 
@@ -33,14 +34,57 @@ def str_app(series, func, *args, **kwargs):
     s2 = getattr(s1, func)
     return s2(*args, **kwargs)
 
-
-def build_vocab(frame):
-    p = punct.replace('.', '')
+def vocab(frame):
+    p = punct.replace('.','').replace('!','').replace('?','')
     d = dict.fromkeys(p, ' ')
     tr = str.maketrans(d)
-    text = frame.body.explode()
-    text = str_app(text, 'translate', tr)
-    text = str_app(text, 'replace', '\s+', ' ', regex=True)
-    text = str_app(text, 'lower')
-    text = str_app(text, 'split').explode()
-    return text
+    trans = frame.body.str.translate(tr)
+    text = trans.str.replace(r'[.!?]','@')
+    # finish me...
+
+#def build_vocab(frame):
+    #p = punct.replace('.','').replace('!','').replace('?','')
+    #d = dict.fromkeys(p, ' ')
+    #tr = str.maketrans(d)
+    ##text = frame.body.explode()
+    ##t.str.replace('[0-9]','#')
+    #text = str_app(text, 'translate', tr)
+    #text = df2.str.replace(r'[.!?]','@')
+    #text = str_app(text, 'replace', '\s+', ' ', regex=True)
+    #text = str_app(text, 'lower')
+    #text = str_app(text, 'split').explode()
+    #return text
+
+def batched(creds):
+    from googleapiclient.discovery import build
+    import googleapiclient.http as gttp
+    import numpy as np
+    
+    kw = dict(
+        userId='me',
+        q=" ".join(["from:no-reply@arxiv.org","subject:(cs daily)"])
+    )
+    messages = []
+    msgs = service.users().messages().list(**kw) 
+    _msgs = msgs.execute() 
+    messages.extend(_msgs['messages']) 
+    while 'nextPageToken' in _msgs: 
+        kw['pageToken'] = _msgs['nextPageToken'] 
+        _msgs = service.users().messages().list(**kw).execute() 
+        messages.extend(_msgs['messages'])
+    ids = np.fromiter(
+        map(op.itemgetter('id'), messages),
+        dtype=(str, 16)
+    )
+    batch = gttp.BatchHttpRequest()
+    bkw = dict(userId='me', format='raw')
+    for mid in ids:
+        bkw['id'] = mid
+        batch.add(service.users().messages().get(**bkw))
+    for request_id in batch._order:
+        resp, content = batch._responses[request_id]
+        message = json.loads(content)
+
+
+
+
