@@ -4,8 +4,7 @@ import collections as co
 from string import punctuation as punct
 
 import pandas as pd
-from api_test import MessageListing
-
+from src.gmailer.listing.listing import MessageListing
 
 PandasDF = typing.TypeVar('pandas.core.frame.DataFrame')
 
@@ -16,7 +15,6 @@ def get_authors(listing_obj, idx=0):
     for x in arts:
         for y in x.authors:
             D[y] |= set(x.authors) - set([y])
-
     return D
 
 
@@ -36,18 +34,22 @@ def str_app(series, func, *args, **kwargs):
 
 def vocab(frame):
     p = punct.replace('.','').replace('!','').replace('?','')
-    d = dict.fromkeys(p, ' ')
-    tr = str.maketrans(d)
+    tr = str.maketrans(dict.fromkeys(p, ' '))
     trans = frame.body.str.translate(tr)
-    text = trans.str.replace(r'[.!?]','@')
-    # finish me...
+    text = trans.str.replace(r'[.!?]', '@', regex=True)
+    text = text.str.replace('\s+', ' ', regex=True)
+    text = text.str.replace('\ss\s', 's ', regex=True)
+    text = text.str.replace('[0-9]', '#', regex=True)
+    text = text.str.split('@').explode().str.strip()
+    text = text[text != '']
+    #
 
 #def build_vocab(frame):
     #p = punct.replace('.','').replace('!','').replace('?','')
     #d = dict.fromkeys(p, ' ')
     #tr = str.maketrans(d)
-    ##text = frame.body.explode()
-    ##t.str.replace('[0-9]','#')
+    #text = frame.body.explode()
+    #t.str.replace('[0-9]','#')
     #text = str_app(text, 'translate', tr)
     #text = df2.str.replace(r'[.!?]','@')
     #text = str_app(text, 'replace', '\s+', ' ', regex=True)
