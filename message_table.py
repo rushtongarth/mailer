@@ -2,7 +2,7 @@ import typing
 import operator as op
 import collections as co
 from string import punctuation as punct
-
+import numpy as np
 import pandas as pd
 from src.gmailer.listing.listing import MessageListing
 
@@ -27,13 +27,9 @@ def message_df(idx=0, credentials='creds.pkl'):
     return df
 
 
-def str_app(series, func, *args, **kwargs):
-    s1 = getattr(series, 'str')
-    s2 = getattr(s1, func)
-    return s2(*args, **kwargs)
 
 def vocab(frame):
-    p = punct.replace('.','').replace('!','').replace('?','')
+    p = punct.replace('.', '').replace('!', '').replace('?', '')
     tr = str.maketrans(dict.fromkeys(p, ' '))
     trans = frame.body.str.translate(tr)
     text = trans.str.replace(r'[.!?]', '@', regex=True)
@@ -42,50 +38,48 @@ def vocab(frame):
     text = text.str.replace('[0-9]', '#', regex=True)
     text = text.str.split('@').explode().str.strip()
     text = text[text != '']
-    #
+    return text
 
-#def build_vocab(frame):
-    #p = punct.replace('.','').replace('!','').replace('?','')
-    #d = dict.fromkeys(p, ' ')
-    #tr = str.maketrans(d)
-    #text = frame.body.explode()
-    #t.str.replace('[0-9]','#')
-    #text = str_app(text, 'translate', tr)
-    #text = df2.str.replace(r'[.!?]','@')
-    #text = str_app(text, 'replace', '\s+', ' ', regex=True)
-    #text = str_app(text, 'lower')
-    #text = str_app(text, 'split').explode()
-    #return text
-
-def batched(creds):
+def debug(idx, creds):
+    import pickle as pkl
     from googleapiclient.discovery import build
-    import googleapiclient.http as gttp
-    import numpy as np
-    
-    kw = dict(
-        userId='me',
-        q=" ".join(["from:no-reply@arxiv.org","subject:(cs daily)"])
-    )
+    from base64 import urlsafe_b64decode
+    from email import message_from_bytes
+
+    qstr = " ".join([
+        "from:no-reply@arxiv.org",
+        "subject:(cs daily)",
+    ])
+    qstr = kwargs.get('query', qstr)
     messages = []
-    msgs = service.users().messages().list(**kw) 
-    _msgs = msgs.execute() 
-    messages.extend(_msgs['messages']) 
-    while 'nextPageToken' in _msgs: 
-        kw['pageToken'] = _msgs['nextPageToken'] 
-        _msgs = service.users().messages().list(**kw).execute() 
-        messages.extend(_msgs['messages'])
-    ids = np.fromiter(
-        map(op.itemgetter('id'), messages),
-        dtype=(str, 16)
-    )
-    batch = gttp.BatchHttpRequest()
-    bkw = dict(userId='me', format='raw')
-    for mid in ids:
-        bkw['id'] = mid
-        batch.add(service.users().messages().get(**bkw))
-    for request_id in batch._order:
-        resp, content = batch._responses[request_id]
-        message = json.loads(content)
+    kw = dict(userId="me", q=qstr)
+    with open(credentials, 'rb') as f:
+        creds = pkl.load(f)
+    service = build('gmail', 'v1', credentials=creds)
+    _msgs = service.users().messages()
+    msgs = _msgs.list(**kw).execute()
+    if 'messages' in msgs:
+        messages.extend(msgs['messages'])
+    while 'nextPageToken' in msgs:
+        kw['pageToken'] = msgs['nextPageToken']
+        msgs = msgs.list(**kw).execute()
+        messages.extend(msgs['messages'])
+    ids = map(op.itemgetter('id'), messages)
+    mids = np.fromiter(ids, dtype=(str, 16))
+
+    m = msgs.get(id=mids[idx], userId="me", format='raw').execute()
+    mess = message_from_bytes(urlsafe_b64decode(m['raw'].encode('ASCII'))
+    mess = np.array(mess.as_string().splitlines())
+    _end = np.where(np.char.startswith(mess, '%%--%%--%%'))[0]
+    _art = np.where(np.char.startswith(mess, 'arXiv:'))[0]
+    _art = _art[_art < _end[0]]
+    slices = np.vstack((_art, np.concatenate((_art[1:], _end)))).T
+    Articles = np.empty(slices.shape[0], dtype=object)
+    for e, s in enumerate(slices):
+        art = np.array([i for i in mess[slice(*s)] if len(i)])
+        Articles[e] = Article(art)
+    return Articles
+
 
 
 

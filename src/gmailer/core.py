@@ -24,23 +24,32 @@ def message_df(idx=0, credentials='creds.pkl'):
     return df
 
 
-def str_app(series, func, *args, **kwargs):
-    s1 = getattr(series, 'str')
-    s2 = getattr(s1, func)
-    return s2(*args, **kwargs)
-
-
-def build_vocab(frame, col="body"):
-    p = punct.replace('.', '')
-    d = dict.fromkeys(p, ' ')
-    tr = str.maketrans(d)
-    text = getattr(frame,col)
-    text = str_app(text, 'translate', tr)
-    text = str_app(text, 'replace', '\s+', ' ', regex=True)
-    text = str_app(text, 'lower')
-    text = str_app(text, 'split').explode()
-    return text
-
-
+def vocab(frame, col="body"):
+    p = punct.replace('.','').replace('!','').replace('?','')
+    tr = str.maketrans(dict.fromkeys(p, ' '))
+    to_parse = frame.get(col)
+    text = to_parse.str.translate(tr)
+    text = text.str.replace(r'[.!?]', '@', regex=True)
+    text = text.str.replace('\s+', ' ', regex=True)
+    text = text.str.replace('\ss\s', 's ', regex=True)
+    text = text.str.replace('[0-9]', '#', regex=True)
+    text = text.str.split('@').explode().str.strip()
+    text = text[text != '']
 
 #
+#def str_app(series, func, *args, **kwargs):
+    #s1 = getattr(series, 'str')
+    #s2 = getattr(s1, func)
+    #return s2(*args, **kwargs)
+
+
+#def build_vocab(frame, col="body"):
+    #p = punct.replace('.', '')
+    #d = dict.fromkeys(p, ' ')
+    #tr = str.maketrans(d)
+    #text = getattr(frame,col)
+    #text = str_app(text, 'translate', tr)
+    #text = str_app(text, 'replace', '\s+', ' ', regex=True)
+    #text = str_app(text, 'lower')
+    #text = str_app(text, 'split').explode()
+    #return text
