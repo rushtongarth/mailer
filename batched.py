@@ -1,10 +1,16 @@
-   from base64 import urlsafe_b64decode
-    from email import message_from_bytes
+import pickle as pkl
+from base64 import urlsafe_b64decode
+from email import message_from_bytes
+from googleapiclient.discovery import build
+
+
+def googobj(creds='creds.pkl'):
+    with open(creds, 'rb') as f:
+        creds = pkl.load(f)
+    return build('gmail', 'v1', credentials=creds)
+
 
 def get_ids(creds='creds.pkl', count=None, gobj=None):
-    
-    from base64 import urlsafe_b64decode
-    from email import message_from_bytes
     # Get message ids
     qstr = " ".join([
         "from:no-reply@arxiv.org",
@@ -35,29 +41,57 @@ def get_ids(creds='creds.pkl', count=None, gobj=None):
         mids = mids[part]
     return mids
 
-def fetch_callback():
- 
 
-def bulk(gobj, count, mlist=None):
-    if mlist:
-        toget = mlist
-    else:
-        toget = get_ids(gobj=gobj,count=count)
-
+class BulkFetcher(object):
     container = []
-    def fetch(rid, response, exception):
+    def __init__(self, gobj, count, mlist=None):
+        self.gobj = gobj
+        if mlist:
+            self.mlist = mlist
+            self.count = len(mlist)
+        else:
+            self.count = count
+
+    def decoder(self, rid, response, exception):
         if exception is not None:
             print(exception)
         else:
-            m = response['raw']
-            mess = message_from_bytes(urlsafe_b64decode(m['raw'].encode('ASCII')))
-            container.append(response)
-    batch = gobj.new_batch_http_request()
-    kw = dict(userId='me', format='raw')
-    for mid in toget:
-        kw['id'] = mid
-        t = gobj.users().messages().get(**kw)
-        batch.add(t, callback=fetch)
+            m = response['raw'].encode('ASCII')
+            mess = message_from_bytes(urlsafe_b64decode(m))
+            self.container.append(response)
+
+    def bulk(self):
+        batch = self.gobj.new_batch_http_request()
+        bobj = self.gobj.users().messages()
+        kw = dict(userId='me', format='raw')
+        for mid in toget:
+            kw['id'] = mid
+            #t = gobj.users().messages().get(**kw)
+            t = bobj.get(**kw)
+            batch.add(t, callback=self.decoder)
+
+        return batch.execute()        
+
+#def bulk(gobj, count, mlist=None):
+    #if mlist:
+        #toget = mlist
+    #else:
+        #toget = get_ids(gobj=gobj,count=count)
+
+    #container = []
+    #def fetch(rid, response, exception):
+        #if exception is not None:
+            #print(exception)
+        #else:
+            #m = response['raw']
+            #mess = message_from_bytes(urlsafe_b64decode(m['raw'].encode('ASCII')))
+            #container.append(response)
+    #batch = gobj.new_batch_http_request()
+    #kw = dict(userId='me', format='raw')
+    #for mid in toget:
+        #kw['id'] = mid
+        #t = gobj.users().messages().get(**kw)
+        #batch.add(t, callback=fetch)
     
-    return batch.execute()
+    #return batch.execute()
 
