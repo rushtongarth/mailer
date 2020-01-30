@@ -49,7 +49,10 @@ class Message(object):
 
     def _art_proc(self, mess, apos, epos):
         _end = np.where(np.char.startswith(mess, epos))[0]
-        _art = np.where(np.char.startswith(mess, apos))[0]
+        trunc = mess[:_end[0]]
+        sw = np.where(np.char.startswith(trunc, apos))[0]
+        _art = sw[np.where(np.char.startswith(trunc[sw-1],epos))[0]]
+        
         _art = _art[_art < _end[0]]
         slices = np.vstack(
             (_art, np.concatenate((_art[1:], _end)))

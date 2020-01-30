@@ -15,15 +15,12 @@ def googobj(creds='creds.pkl'):
 def get_ids(creds='creds.pkl', count=None, gobj=None):
     # Get message ids
     qstr = " ".join([
-        "from:no-reply@arxiv.org",
-        "subject:(cs daily)",
+        "from:no-reply@arxiv.org", "subject:(cs daily)",
     ])
     messages = []
     kw = dict(userId="me", q=qstr)
     if not gobj:
-        with open(creds, 'rb') as f:
-            creds = pkl.load(f)
-        service = build('gmail', 'v1', credentials=creds)
+        service = googobj(creds=creds)
     else:
         service = gobj
     service_messages = service.users().messages()
@@ -38,9 +35,12 @@ def get_ids(creds='creds.pkl', count=None, gobj=None):
     ids = map(op.itemgetter('id'), messages)
     mids = np.fromiter(ids, dtype=(str, 16))
     if count:
-        length = mids.size
-        part = np.random.randint(length,size=(count,))
-        mids = mids[part]
+        if count<0:
+            mids = mids[count:]
+        else:
+            length = mids.size
+            part = np.random.randint(length,size=(count,))
+            mids = mids[part]
     return mids
 
 
