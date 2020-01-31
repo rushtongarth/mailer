@@ -6,7 +6,6 @@ from ..message.message import Message
 
 
 class MessageListing(object):
-
     """Message listing class
 
     This class is designed to act as a container for messages

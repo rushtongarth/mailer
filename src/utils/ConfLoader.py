@@ -36,9 +36,9 @@ class CoreLoader(object):
         self.name = creds['name']
         self.pswd = creds['pass']
         addrs = self.C['Receivers']
-        if self.C.has_option('Receivers','to_list'):
+        if self.C.has_option('Receivers', 'to_list'):
             self.to_ad = addrs['to_list'].split()
-        if self.C.has_option('Receivers','cc_list'):
+        if self.C.has_option('Receivers', 'cc_list'):
             self.cc_ad = addrs['cc_list'].split()
 
     @property

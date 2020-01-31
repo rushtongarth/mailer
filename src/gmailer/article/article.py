@@ -1,9 +1,7 @@
 import numpy as np
 
 
-
 class Article(object):
-
     """Article loader
 
     Load and process articles has the following specific slots
@@ -64,7 +62,7 @@ class Article(object):
         # needs update from article 2001.02960
         # account for multiple splits per author
         self.authors = np.array(astr.split(', '))
-        
+
         lc = np.char.lower(self.artid.split(':'))
         self.link = 'https://{0}.org/abs/{1}'.format(*lc)
 
