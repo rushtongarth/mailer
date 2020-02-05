@@ -1,10 +1,9 @@
 import pickle as pkl
 import operator as op
-#from base64 import urlsafe_b64decode
-#from email import message_from_bytes
 import numpy as np
 from googleapiclient.discovery import build
 from src.gmailer.message.message import Message
+
 
 def googobj(creds='creds.pkl'):
     with open(creds, 'rb') as f:
@@ -14,9 +13,8 @@ def googobj(creds='creds.pkl'):
 
 def get_ids(creds='creds.pkl', count=None, gobj=None):
     # Get message ids
-    qstr = " ".join([
-        "from:no-reply@arxiv.org", "subject:(cs daily)",
-    ])
+    qstr = " ".join(["from:no-reply@arxiv.org",
+                     "subject:(cs daily)"])
     messages = []
     kw = dict(userId="me", q=qstr)
     if not gobj:
@@ -56,22 +54,19 @@ class BulkFetcher(object):
             self.count = count
             self.mlist = get_ids(count=count, gobj=gobj)
 
-    def decoder(self, rid, response, exception):
+    def __decoder(self, rid, response, exception):
         if exception is not None:
             print(exception)
         else:
-            #m = response['raw'].encode('ASCII')
-            #mess = message_from_bytes(urlsafe_b64decode(m))
-            #mess = np.array(mess.as_string().splitlines())
-            self.container.append(response)
+            mess = Message(response)
+            self.container.append(mess)
 
-    def bulk(self):
+    def get(self):
         batch = self.gobj.new_batch_http_request()
         bobj = self.gobj.users().messages()
         kw = dict(userId='me', format='raw')
         for mid in self.mlist:
             kw['id'] = mid
             t = bobj.get(**kw)
-            batch.add(t, callback=self.decoder)
-
+            batch.add(t, callback=self.__decoder)
         batch.execute()
