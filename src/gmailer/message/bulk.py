@@ -1,22 +1,35 @@
 import operator as op
-import itertoools as it
+import itertools as it
 import numpy as np
 import pandas as pd
 
 from src.gmailer.message.message import Message
+from src.gmailer.listing.listing import MessageListing
 
-
-class BulkFetcher(object):
+class BulkFetcher(MessageListing):
     container = []
 
-    def __init__(self, gobj, count=10, mlist=None):
-        self.gobj = gobj
+    def __init__(self, credentials, **kwargs):
+        count = kwargs.pop('count',10)
+        selection = kwargs.pop('selection','rand')
+        mlist = kwargs.pop('message_list',None)
+        super().__init__(credentials, **kwargs)
+        self.gobj = self.service
         if mlist is not None:
             self.mlist = mlist
-            self.count = len(mlist)
         else:
-            self.count = count
-            self.mlist = get_ids(count=count, gobj=gobj)
+            l = len(self)
+            if selection == 'rand':
+                locs = np.random.randint(0, high=l, size=(count,))
+            else:
+                locs = np.r_[(l-count):l]
+            self.mlist = self.message_ids[locs]
+    def __frame(self):
+        _arts = map(op.attrgetter('Articles'), self.container)
+        _arts = it.chain.from_iterable(_arts)
+        attrs = ['artid', 'authors', 'body', 'categories', 'link', 'title']
+        arts = map(op.attrgetter(*attrs), _arts)
+        self._df = pd.DataFrame(arts, columns=attrs) 
 
     def __decoder(self, rid, response, exception):
         if exception is not None:
@@ -34,14 +47,11 @@ class BulkFetcher(object):
             t = bobj.get(**kw)
             batch.add(t, callback=self.__decoder)
         batch.execute()
-
+    
     @property
     def df(self):
         if len(self.container) == 0:
             self.get()
-        _arts = map(op.attrgetter('Articles'), self.container)
-        _arts = it.chain.from_iterable(_arts)
-        attrs = ['artid', 'authors', 'body', 'categories', 'link', 'title']
-        arts = map(op.attrgetter(*attrs), _arts)
-        self._df = pd.DataFrame(arts, columns=attrs)
+        if not hasattr(self, '_df'):
+            self.__frame()
         return self._df
