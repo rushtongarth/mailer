@@ -1,7 +1,7 @@
 import typing
 import operator as op
 import collections as co
-from string import punctuation as punct
+from string import punctuation
 import numpy as np
 import pandas as pd
 from src.gmailer.listing.listing import MessageListing
@@ -47,7 +47,28 @@ def googobj(creds='creds.pkl'):
     return build('gmail', 'v1', credentials=creds)
     
 
+class Sanitizer(object):
+    
+    def __init__(self, fullframe, eos='@', punct=['.', '?', '!']):
+        self.df = fullframe
+        no_eos = punctuation.translate(
+            str.maketrans(dict.fromkeys(punct, '')))
+        __punct = dict.fromkeys(no_eos, ' ')
+        self.punct_tr = str.maketrans(__punct)
+        self.eos_tr = str.maketrans(dict.fromkeys(punct,eos))
+        self.eos = eos
 
+    def __vocab(self, series):
+        text = series.str.translate(self.punct_tr)
+        text = text.str.translate(self.eos_tr)
+        text = text.str.replace('\s+', ' ', regex=True)
+        text = text.str.replace('\ss\s', 's ', regex=True)
+        text = text.str.replace('[0-9]', '#', regex=True)
+        text = text.str.split(self.eos).explode().str.strip()
+        text = text[text != '']
+        return text
+        
+        
 
 
 

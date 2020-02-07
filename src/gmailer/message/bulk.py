@@ -6,6 +6,7 @@ import pandas as pd
 from src.gmailer.message.message import Message
 from src.gmailer.listing.listing import MessageListing
 
+
 class BulkFetcher(MessageListing):
     container = []
 
