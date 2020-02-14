@@ -23,9 +23,7 @@ class Article(object):
         categories : `str`, optional
             category pattern.  Default ``'Categories: '``
     """
-    __slots__ = (
-        'artid', 'title', 'authors', 'categories', 'link', 'body'
-    )
+    __slots__ = ('artid', 'title', 'authors', 'categories', 'link', 'body')
 
     def __init__(self, art_obj, **patterns):
         splitter = patterns.get('splitter', '\\\\')
@@ -61,8 +59,8 @@ class Article(object):
         astr = astr.replace(' and ', ', ')
         # needs update from article 2001.02960
         # account for multiple splits per author
+        # 2020-02-14 still broken?
         self.authors = np.array(astr.split(', '))
-
         lc = np.char.lower(self.artid.split(':'))
         self.link = 'https://{0}.org/abs/{1}'.format(*lc)
 
@@ -73,5 +71,6 @@ class Article(object):
 
     def __body(self, body):
         onestr = ' '.join(np.char.strip(body[1:]))
-        # self.body = np.array(onestr.split('. '))
         self.body = onestr
+
+

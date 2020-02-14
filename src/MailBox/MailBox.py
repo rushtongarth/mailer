@@ -4,7 +4,7 @@ import abc
 class AbstractMailBox(abc.ABC):
 
     @abc.abstractmethod
-    def __init__(self, user, pswd, location):
+    def __init__(self, *credentials):
         pass
 
     @abc.abstractmethod

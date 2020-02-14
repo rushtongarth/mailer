@@ -1,8 +1,25 @@
 import smtplib
+from base64 import urlsafe_b64decode
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
+from src.gmailer import googobj
 from .MailBox import AbstractMailBox
 
+
+def send_test_gmail(gobj, body, mess_to, mess_from):
+    message = MIMEText(body)
+    message['to'] = mess_to
+    message['from'] = mess_from
+    message['subject'] = 'testing'
+    mstr = message.as_string()
+    msg = dict(raw=urlsafe_b64encode(mstr).decode())
+    gmessages = gobj.users().messages()
+    try:
+        tosend = gmessages.send(userId="me", body=msg).execute()
+        return tosend
+    except Exception as E:
+        raise E
 
 class SendMail(AbstractMailBox):
     """SendMail

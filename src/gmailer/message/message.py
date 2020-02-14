@@ -59,3 +59,9 @@ class Message(object):
         for e, s in enumerate(slices):
             art = np.array([i for i in mess[slice(*s)] if len(i)])
             self.Articles[e] = Article(art)
+
+
+
+
+
+

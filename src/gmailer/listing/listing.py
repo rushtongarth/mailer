@@ -1,7 +1,6 @@
-import pickle as pkl
 import operator as op
 import numpy as np
-from googleapiclient.discovery import build
+from .. import googobj
 from ..message.message import Message
 
 
@@ -18,11 +17,7 @@ class MessageListing(object):
         ])
         self.qstr = kwargs.get('query', qstr)
         self.user = "me"
-        with open(credentials, 'rb') as f:
-            creds = pkl.load(f)
-        self.service = build(
-            'gmail', 'v1', credentials=creds
-        )
+        self.service = googobj(creds=credentials)
         self.msgs = self.service.users().messages()
 
     def __mids(self):

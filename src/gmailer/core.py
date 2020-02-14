@@ -37,19 +37,4 @@ def vocab(frame, col="body"):
     text = text[text != '']
 
 #
-#def str_app(series, func, *args, **kwargs):
-    #s1 = getattr(series, 'str')
-    #s2 = getattr(s1, func)
-    #return s2(*args, **kwargs)
 
-
-#def build_vocab(frame, col="body"):
-    #p = punct.replace('.', '')
-    #d = dict.fromkeys(p, ' ')
-    #tr = str.maketrans(d)
-    #text = getattr(frame,col)
-    #text = str_app(text, 'translate', tr)
-    #text = str_app(text, 'replace', '\s+', ' ', regex=True)
-    #text = str_app(text, 'lower')
-    #text = str_app(text, 'split').explode()
-    #return text
