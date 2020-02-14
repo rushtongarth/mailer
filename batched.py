@@ -42,31 +42,4 @@ def get_ids(creds='creds.pkl', count=None, gobj=None):
     return mids
 
 
-#class BulkFetcher(object):
-    #container = []
 
-    #def __init__(self, gobj, count=None, mlist=None):
-        #self.gobj = gobj
-        #if mlist is not None:
-            #self.mlist = mlist
-            #self.count = len(mlist)
-        #else:
-            #self.count = count
-            #self.mlist = get_ids(count=count, gobj=gobj)
-
-    #def __decoder(self, rid, response, exception):
-        #if exception is not None:
-            #print(exception)
-        #else:
-            #mess = Message(response)
-            #self.container.append(mess)
-
-    #def get(self):
-        #batch = self.gobj.new_batch_http_request()
-        #bobj = self.gobj.users().messages()
-        #kw = dict(userId='me', format='raw')
-        #for mid in self.mlist:
-            #kw['id'] = mid
-            #t = bobj.get(**kw)
-            #batch.add(t, callback=self.__decoder)
-        #batch.execute()

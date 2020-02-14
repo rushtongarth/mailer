@@ -50,20 +50,6 @@ def googobj(creds='creds.pkl'):
     return build('gmail', 'v1', credentials=creds)
     
 
-def send_test_gmail(gobj,mess_to,mess_from):
-    from email.mime.text import MIMEText
-    import base64
-    message = MIMEText("<html><h1>Hello</h1><p>World</p></html>",'html')
-    message['to'] = mess_to
-    message['from'] = mess_from
-    message['subject'] = 'testing'
-    msg = {'raw': base64.urlsafe_b64encode(message.as_string()).decode()}
-    try:
-        tosend = gobj.users().messages().send(userId="me",body=msg).execute()
-        return tosend
-    except Exception as E:
-        raise E
-
 
 class Sanitizer(object):
     
