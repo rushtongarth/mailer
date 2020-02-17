@@ -8,11 +8,28 @@ from src.gmailer.listing.listing import MessageListing
 
 
 class BulkFetcher(MessageListing):
+    """Bulk message listing fetcher
+    
+    Parameters
+    ----------
+    credentials: :class:`pickle.pickle` or str
+        pickle file or path to pickle file containing the api credentials.
+    message_list : :class:`np.ndarray`, optional
+        messages id list to use, if unset then the full list will be the
+        source of any downstream selections
+    count : int, optional
+        number of messages to select (default: 10)
+    selection : str, optional
+        If unset then the first `count` messages from list of 
+        message ids will be used.  If set to `'rand'` then a random sample
+        of messages of size `count` from message id list will be used
+    
+    """
     container = []
 
     def __init__(self, credentials, **kwargs):
         count = kwargs.pop('count',10)
-        selection = kwargs.pop('selection','rand')
+        selection = kwargs.pop('selection',None)
         mlist = kwargs.pop('message_list',None)
         super().__init__(credentials, **kwargs)
         self.gobj = self.service

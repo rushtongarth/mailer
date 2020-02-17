@@ -63,8 +63,8 @@ class Sanitizer(object):
         self.eos = eos
 
     def __vocab(self, series):
-        text = series.str.replace('e.g.', 'for example',regex=False)
-        text = series.str.replace('i.e.', 'that is',regex=False)
+        text = series.str.replace('e\.g\.', 'for example')
+        text = series.str.replace('i\.e\.', 'that is')
         text = series.str.translate(self.punct_tr)
         text = text.str.translate(self.eos_tr)
         text = text.str.replace('\s+', ' ', regex=True)
