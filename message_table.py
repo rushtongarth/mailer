@@ -29,12 +29,8 @@ def message_df(idx=0, credentials='creds.pkl'):
     return pd.DataFrame(map(get, arr.Articles), columns=attrs)
 
 
-def str_apply(ser,*args,**kwargs):
-    fn = op.methodcaller(*args, **kwargs)
-    return fn(getattr(ser,'str'))
 
 class Sanitizer(object):
-    
     def __init__(self, fullframe, eos='@', punct=['.', '?', '!']):
         self.df = fullframe
         no_eos = punctuation.translate(
@@ -43,28 +39,28 @@ class Sanitizer(object):
         self.punct_tr = str.maketrans(__punct)
         self.eos_tr = str.maketrans(dict.fromkeys(punct, eos))
         self.eos = eos
-
+    @staticmethod
+    def strapp(ser, *args, **kwargs):
+        atr = op.attrgetter('str')(ser)
+        fn = op.methodcaller(*args, **kwargs)
+        return fn(atr)
     def __vocab(self, column):
         series = self.df.get(column)
         series = (
-            series.pipe(str_apply, 'replace', 'e\.\s*g\.', 'for example')
-                  .pipe(str_apply, 'replace', 'i\.\s*e\.', 'that is')
-                  .pipe(str_apply, 'translate', self.punct_tr)
-                  .pipe(str_apply, 'translate', self.eos_tr)
-                  .pipe(str_apply, 'replace', '\s+', ' ')
-                  .pipe(str_apply, 'replace', '\ss\s', 's ')
-                  .pipe(str_apply, 'replace', '[0-9]', '#')
-                  .pipe(str_apply, 'split', self.eos)
+            series.pipe(self.strapp, 'replace', 'e\.\s*g\.', 'for example')
+                  .pipe(self.strapp, 'replace', 'i\.\s*e\.', 'that is')
+                  .pipe(self.strapp, 'translate', self.punct_tr)
+                  .pipe(self.strapp, 'translate', self.eos_tr)
+                  .pipe(self.strapp, 'replace', '\s+', ' ')
+                  .pipe(self.strapp, 'replace', '\ss\s', 's ')
+                  .pipe(self.strapp, 'replace', '[0-9]', '#')
+                  .pipe(self.strapp, 'split', self.eos)
         )
         text = series.explode().str.strip()
         return text[text.str.len() > 0]
-        
-    def vocab(self, column_name):
-        """Build a vocab as in get to the point."""
-        series = self.__vocab(column_name)
-        return series
-        
-        
+    def vocab(self, series):
+        series = self.__vocab(series)
+        return series        
 
 
 
